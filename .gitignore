@@ -1,0 +1,6 @@
+data
+output
+env
+.DS_Store
+.snakemake
+Rplots.pdf
