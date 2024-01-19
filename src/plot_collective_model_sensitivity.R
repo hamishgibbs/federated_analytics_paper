@@ -6,76 +6,105 @@ suppressPackageStartupMessages({
 if (interactive()) {
   .args <- c(
     "data/mobility/clean/daily_county2county_2019_01_01_clean.csv",
-    "output/analytics/base_analytics/gravity_transport/base_analytics_2019_01_01.csv",
-    "data/geo/2019_us_county_distance_matrix.csv",
-    "output/gravity/diagnostic/gravity_transport_2019_01_01_error.rds",
-    "output/sensitivity/collective_model_sensitivity/collective_model_metrics_2019_01_01.png"
+    "output/gravity/check/gravity_basic_2019_01_01_check.csv",
+    "output/gravity/check/gravity_power_2019_01_01_check.csv",
+    "output/gravity/pij/gravity_basic_2019_01_01_pij.csv",
+    "output/gravity/pij/gravity_power_2019_01_01_pij.csv",
+    "output/sensitivity/collective_model_sensitivity/collective_error_comparison_2019_01_01.png",
+    "output/sensitivity/collective_model_sensitivity/collective_model_metrics_2019_01_01.png",
+    "output/sensitivity/collective_model_sensitivity/collective_model_metrics_2019_01_01.csv"
   )
+  N_COLLECTIVE_MODELS <- 2
 } else {
   .args <- commandArgs(trailingOnly = T)
+  N_COLLECTIVE_MODELS <- 8
 }
 
-.outputs <- tail(.args, 1)
+.outputs <- tail(.args, 3)
 
 empirical <- fread(.args[1], 
                    colClasses=c("geoid_o"="character", "geoid_d"="character"))
-depr <- fread(.args[2],
-              colClasses=c("geoid_o"="character", "geoid_d"="character"))
-dist <- fread(.args[3],
-              colClasses=c("GEOID_origin"="character", "GEOID_dest"="character"))
 
-p_empirical <- readr::read_rds(.args[4])
+metrics_fn <- .args[2:(N_COLLECTIVE_MODELS+1)]
+pij_fn <- .args[(N_COLLECTIVE_MODELS+2):(N_COLLECTIVE_MODELS+N_COLLECTIVE_MODELS+1)]
 
-# filter for states
-states <- unique(substr(depr$geoid_o, 1, 2))
+read_model <- function(fn, stub, colClasses){
+  model_name <- gsub(stub, "", basename(fn)) 
+  df <- fread(fn, colClasses=colClasses)
+  df$model <- model_name
+  df
+}
 
-empirical <- empirical[
-  substr(empirical$geoid_o, 1, 2) %in% states & 
-    substr(empirical$geoid_d, 1, 2) %in% states, ]
+metrics <- do.call(rbind, 
+                   lapply(metrics_fn, read_model, stub="_2019_01_01_check.csv",
+                          colClasses=c()))
+pij <- do.call(rbind, 
+               lapply(pij_fn, read_model, stub="_2019_01_01_pij.csv",
+                      colClasses=c("geoid_o"="character", "geoid_d"="character")))
 
-dist <- dist[
-  substr(dist$GEOID_origin, 1, 2) %in% states & 
-    substr(dist$GEOID_dest, 1, 2) %in% states, ]
+empirical[, obs := pop_flows / sum(pop_flows)]
 
-all_counties <- unique(c(
-  empirical$geoid_o,
-  empirical$geoid_d,
-  depr$geoid_o,
-  depr$geoid_o))
+pij[empirical, on=c("geoid_o", "geoid_d"), obs := obs]
 
-all_counties <- data.table(gtools::permutations(n=length(all_counties), r=2, v=all_counties, repeats.allowed = T))
-colnames(all_counties) <- c("geoid_o", "geoid_d")
-all_counties <- all_counties[order(geoid_o, geoid_d)]
+pij <- pij[order(obs)]
+pij[, id := rev(.I)]
 
-all_counties[empirical, on=c("geoid_o", "geoid_d"), empirical := pop_flows]
-all_counties[depr, on=c("geoid_o", "geoid_d"), depr := count]
+pij <- melt(pij, id.vars = c("geoid_o", "geoid_d", "model", "id"))
 
-all_counties[is.na(all_counties)] <- 0
+model_order <- subset(metrics, metric=="RMSE")[order(-value)]$model
+model_labels <- stringr::str_to_title(gsub("_", " ", model_order))
 
-all_counties[, empirical := empirical / sum(empirical)]
-all_counties[, depr := depr / sum(depr)]
+pij[, model := factor(model, levels=model_order, labels=model_labels)]
 
-all_counties <- all_counties[order(empirical)]
-all_counties[, id := rev(.I)]
-
-all_counties_long <- melt(all_counties, id.vars = c('geoid_o', 'geoid_d', 'id'))
-
-p_depr <- ggplot(all_counties_long) + 
+p <- ggplot(pij) + 
   geom_point(aes(x = id, y = value, color=variable), size=0.2) + 
-  scale_y_continuous(trans="log10", labels = scales::comma) + 
+  scale_y_continuous(trans="log10") + 
   scale_x_continuous(trans="log10") + 
-  scale_color_manual(values=c("black", "red")) + 
-  labs(title="d-EPR",
-       y = "P(i,j)",
+  scale_color_manual(values=c("obs"="black", "value"="red")) + 
+  facet_wrap(~model, nrow = 4, ncol=2, scales="free_y") + 
+  labs(y = expression(P['i,j']),
        x = "Origin-Destination Pair") + 
   theme_classic() + 
-  theme(legend.position = "none")
+  theme(legend.position="none",
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        text = element_text(size=15))
 
-p <- cowplot::plot_grid(p_empirical + theme(legend.position = "none"), 
-                   p_depr, nrow = 1)
+p
 
 ggsave(.outputs[1],
+       p,
+       width=12,
+       height=14, 
+       units="in")  
+
+metrics <- metrics[order(metric, model)]
+
+metrics[, model := factor(model, levels=model_order, labels=model_labels)]
+
+metrics[, metric := factor(metric, levels=c("RMSE", "MAPE", "DIC", "R2"))]
+
+p <- ggplot(metrics) + 
+  geom_point(aes(x = model, y = value, color=model), size=1.5) + 
+  facet_wrap(~metric, scales='free_y') + 
+  theme_minimal() + 
+  theme(legend.position = "none",
+        plot.background = element_rect(fill="white"),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        strip.text = element_text(face="bold"),
+        text = element_text(size=15)) + 
+  labs(y = "Value",
+       x = NULL)
+
+p
+
+ggsave(.outputs[2],
        p,
        width=10,
        height=6, 
        units="in")  
+
+metrics[, value := round(value, 2)]
+
+fwrite(dcast(metrics, model ~ metric), .outputs[3])
+

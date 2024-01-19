@@ -4,3 +4,4 @@ env
 .DS_Store
 .snakemake
 Rplots.pdf
+.ipynb_checkpoints

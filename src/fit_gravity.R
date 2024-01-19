@@ -11,11 +11,11 @@ if (interactive()) {
     "data/mobility/clean/daily_county2county_2019_01_01_clean.csv",
     "100",
     "500",
-    "output/gravity/summary/radiation_basic_2019_01_01_summary.csv",
-    "output/gravity/check/radiation_basic_2019_01_01_check.csv",
-    "output/gravity/pij/radiation_basic_2019_01_01_pij.csv",
-    "output/gravity/diagnostic/radiation_basic_2019_01_01_error.png",
-    "output/gravity/diagnostic/radiation_basic_2019_01_01_error.rds"
+    "output/gravity/summary/departure-diffusion_exp_2019_01_01_summary.csv",
+    "output/gravity/check/departure-diffusion_exp_2019_01_01_check.csv",
+    "output/gravity/pij/departure-diffusion_exp_2019_01_01_pij.csv",
+    "output/gravity/diagnostic/departure-diffusion_exp_2019_01_01_error.png",
+    "output/gravity/diagnostic/departure-diffusion_exp_2019_01_01_error.rds"
   )
 } else {
   .args <- commandArgs(trailingOnly = T)

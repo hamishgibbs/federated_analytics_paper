@@ -8,18 +8,14 @@ collective_types = [
     "gravity_exp",
     "gravity_powernorm",
     "gravity_expnorm",
-    "radiation_basic",
-    "radiation_finite",
     "departure-diffusion_power",
-    "departure-diffusion_exp",
-    "departure-diffusion_radiation"
+    "departure-diffusion_exp"
     ]
 
 rule all:
     input:
         "data/geo/2019_us_county_distance_matrix.csv",
         "data/population/pop_est2019_clean.csv",
-        expand("output/sensitivity/collective_model_sensitivity/{collective_type}_2019_01_01_error_comparison.png", collective_type=collective_types),
         "output/sensitivity/collective_model_sensitivity/collective_model_metrics_2019_01_01.png"
 
 # rule to download mobility data by date pattern
@@ -113,22 +109,12 @@ rule plot_collective_model_sensitivity:
     input:
         "src/plot_collective_model_sensitivity.R",
         "data/mobility/clean/daily_county2county_2019_01_01_clean.csv",
-        "output/analytics/base_analytics/{collective_type}/base_analytics_2019_01_01.csv",
-        "data/geo/2019_us_county_distance_matrix.csv",
-        "output/gravity/diagnostic/{collective_type}_2019_01_01_error.rds"
+        expand("output/gravity/check/{collective_type}_2019_01_01_check.csv", collective_type=collective_types),
+        expand("output/gravity/pij/{collective_type}_2019_01_01_pij.csv", collective_type=collective_types)
     output:
-        "output/sensitivity/collective_model_sensitivity/{collective_type}_2019_01_01_error_comparison.png"
-    shell:
-        """
-        Rscript {input} {output}
-        """
-
-rule plot_collective_model_metrics_sensitivity:
-    input:
-        "src/plot_collective_model_metrics_sensitivity.R",
-        expand("output/gravity/check/{collective_type}_2019_01_01_check.csv", collective_type=collective_types)
-    output:
-        "output/sensitivity/collective_model_sensitivity/collective_model_metrics_2019_01_01.png"
+        "output/sensitivity/collective_model_sensitivity/collective_error_comparison_2019_01_01.png",
+        "output/sensitivity/collective_model_sensitivity/collective_model_metrics_2019_01_01.png",
+        "output/sensitivity/collective_model_sensitivity/collective_model_metrics_2019_01_01.csv"
     shell:
         """
         Rscript {input} {output}
