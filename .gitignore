@@ -5,3 +5,4 @@ env
 .snakemake
 Rplots.pdf
 .ipynb_checkpoints
+*.nbconvert.ipynb

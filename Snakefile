@@ -16,7 +16,10 @@ rule all:
     input:
         "data/geo/2019_us_county_distance_matrix.csv",
         "data/population/pop_est2019_clean.csv",
-        "output/sensitivity/collective_model_sensitivity/collective_model_metrics_2019_01_01.png"
+        "output/sensitivity/collective_model_sensitivity/collective_model_metrics_2019_01_01.png",
+        "output/analytics/base_analytics/departure-diffusion_exp/base_analytics_2019_01_01.csv",
+        "output/analytics/k_anonymous/departure-diffusion_exp/k_anonymous_analytics_2019_01_01.csv",
+        "output/figs/k_anonymity_construction.png"
 
 # rule to download mobility data by date pattern
 
@@ -119,5 +122,38 @@ rule plot_collective_model_sensitivity:
         """
         Rscript {input} {output}
         """
+
+rule compare_privacy_construction:
+    input:
+        "src/privacy.py",
+        "output/depr/departure-diffusion_exp/simulated_depr_2019_01_01.csv"
+    output:
+        "output/analytics/k_anonymous/departure-diffusion_exp/k_anonymous_analytics_2019_01_01.csv",
+        "output/analytics/gdp/departure-diffusion_exp/gdp_analytics_2019_01_01.csv",
+        "output/analytics/naive_ldp/departure-diffusion_exp/naive_ldp_analytics_2019_01_01.csv",
+        "output/analytics/cms/departure-diffusion_exp/cms_analytics_2019_01_01.csv"
+    shell:
+        """
+        python {input} {output}
+        """
+
+rule plot_privacy_construction:
+    input:
+        "src/plot_privacy_construction.ipynb",
+        "output/analytics/base_analytics/departure-diffusion_exp/base_analytics_2019_01_01.csv",
+        "output/analytics/k_anonymous/departure-diffusion_exp/k_anonymous_analytics_2019_01_01.csv",
+        "output/analytics/gdp/departure-diffusion_exp/gdp_analytics_2019_01_01.csv",
+        "output/analytics/naive_ldp/departure-diffusion_exp/naive_ldp_analytics_2019_01_01.csv",
+        "output/analytics/cms/departure-diffusion_exp/cms_analytics_2019_01_01.csv"
+    output:
+        'output/figs/k_anonymity_construction.png',
+        'output/figs/gdp_construction.png',
+        'output/figs/naive_ldp_construction.png',
+        'output/figs/cms_construction.png'
+    shell:
+        """
+        jupyter nbconvert --to notebook --execute {input[0]}
+        """
+
 
 # rule fit_collective: # full-scale fitting for the chosen model (if its a model that needs fitting)
