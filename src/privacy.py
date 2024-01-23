@@ -51,12 +51,7 @@ def freq_cms(domain, data, m, k, v, epsilon):
     k: number of hash functions
     v: number of rows per uid
     epsilon: privacy budget
-    """
-
-    # add unique index for each pair
-    domain = domain.select([pl.col('geoid_o'), pl.col('geoid_d')]).unique()
-    domain = domain.with_columns(pl.Series("od_id", range(domain.height)))
-     
+    """     
     # Select total rows per uid <= v
     data = data.groupby('uid').apply(lambda x: sample_n(x, v))
 
@@ -72,10 +67,11 @@ def freq_cms(domain, data, m, k, v, epsilon):
     for od_id in domain['od_id'].to_list():
         freq.append(server.estimate(od_id))
     
-    # Is this returning a count?
     domain = domain.with_columns(pl.Series("count", freq))
 
     domain = domain.drop('od_id')
+
+    domain = domain.with_columns(pl.col('count').apply(lambda x: np.max([x, 0])).alias('count'))
 
     return domain     
 
@@ -95,6 +91,9 @@ def main():
        .apply(lambda group: group.with_columns(group["geoid"].shift(-1).alias("geoid_d"))) \
        .rename({'geoid': 'geoid_o'}) \
        .filter(pl.col('geoid_d').is_not_null())
+    
+    domain = depr.select([pl.col('geoid_o'), pl.col('geoid_d')]).unique()
+    domain = domain.with_columns(pl.Series("od_id", range(domain.height)))
 
     depr = depr.with_columns(pl.lit(1).alias('count'))
 
@@ -108,7 +107,7 @@ def main():
                   sensitivity=10, 
                   epsilon=10)
 
-    cms = freq_cms(depr[['geoid_o', 'geoid_d']], 
+    cms = freq_cms(domain, 
                    depr, 
                    m=1024, 
                    k=10, 

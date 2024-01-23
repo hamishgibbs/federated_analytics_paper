@@ -3,20 +3,6 @@ import polars as pl
 import numpy as np
 import powerlaw
 
-# Bring in populations X
-# Bring in pij X
-
-# Initialize based on a population sampling rate X
-
-# For each individual
-    # decide on time steps of each visit 
-    # Activity selection, either return or explore
-        # On return - visit a previously visited place with uniform probability
-        # On explore - visit a place based on gravity model params
-        # All that matters for our purposes are the number of OD pairs visited
-
-# Tune waiting time distribution based on average trips per day
-
 def calc_waiting_time(beta, tau):
     return powerlaw.Power_Law(0, parameters=[1.+ beta, 1.0/tau]).generate_random(1)[0]
 
