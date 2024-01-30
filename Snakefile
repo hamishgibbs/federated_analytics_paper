@@ -12,6 +12,26 @@ collective_types = [
     "departure-diffusion_exp"
     ]
 
+epsilons = [0.1, 0.5, 1, 5, 10, 15]
+sensitivities = [1, 2, 5, 10]
+
+sensitivity_params = {
+    "GDP": {
+        "epsilon": epsilons,
+        "sensitivity": sensitivities
+    },
+    "CMS": {
+        "k": [1, 5, 10, 100, 1000],
+        "m": [2**i for i in range(2, 14, 2)],
+        "epsilon": epsilons,
+        "sensitivity": sensitivities
+    },
+    "naive_LDP": {
+        "epsilon": epsilons,
+        "sensitivity": 10
+    },
+}
+
 rule all:
     input:
         "data/geo/2019_us_county_distance_matrix.csv",
@@ -19,7 +39,8 @@ rule all:
         "output/sensitivity/collective_model_sensitivity/collective_model_metrics_2019_01_01.png",
         "output/analytics/base_analytics/departure-diffusion_exp/base_analytics_2019_01_01.csv",
         "output/analytics/k_anonymous/departure-diffusion_exp/k_anonymous_analytics_2019_01_01.csv",
-        "output/figs/k_anonymity_construction.png"
+        "output/figs/k_anonymity_construction.png",
+        "output/analytics/sensitivity/privacy_sensitivity_2019_01_01.csv"
 
 # rule to download mobility data by date pattern
 
@@ -153,6 +174,49 @@ rule plot_privacy_construction:
     shell:
         """
         jupyter nbconvert --to notebook --execute {input[0]}
+        """
+
+rule all_privacy_sensitivity:
+    input:
+        "src/calc_privacy_error.py",
+        expand("output/analytics/sensitivity/{construction}/{construction}_analytics_s_{sensitivity}_e_{epsilon}_k_{k}_m_{m}_2019_01_01.csv", 
+        construction="GDP",
+        sensitivity=sensitivity_params["GDP"]["sensitivity"],
+        epsilon=sensitivity_params["GDP"]["epsilon"],
+        k="NA",
+        m="NA"),
+        expand("output/analytics/sensitivity/{construction}/{construction}_analytics_s_{sensitivity}_e_{epsilon}_k_{k}_m_{m}_2019_01_01.csv", 
+        construction="naive_LDP",
+        sensitivity=sensitivity_params["naive_LDP"]["sensitivity"],
+        epsilon=sensitivity_params["naive_LDP"]["epsilon"],
+        k="NA",
+        m="NA"),
+        expand("output/analytics/sensitivity/{construction}/{construction}_analytics_s_{sensitivity}_e_{epsilon}_k_{k}_m_{m}_2019_01_01.csv", 
+        construction="CMS",
+        sensitivity=sensitivity_params["CMS"]["sensitivity"],
+        epsilon=sensitivity_params["CMS"]["epsilon"],
+        k=sensitivity_params["CMS"]["k"],
+        m=sensitivity_params["CMS"]["m"])
+    output:
+        "output/analytics/sensitivity/privacy_sensitivity_2019_01_01.csv"
+    shell:
+        "python {input} {output}"
+
+rule privacy_sensitivity:
+    input:
+        "src/privacy_sensitivity.py",
+        "output/depr/departure-diffusion_exp/simulated_depr_2019_01_01.csv"
+    params:
+        construction=lambda wildcards: wildcards.construction,
+        epsilon=lambda wildcards: wildcards.epsilon,
+        sensitivity=lambda wildcards: wildcards.sensitivity,
+        k=lambda wildcards: wildcards.k,
+        m=lambda wildcards: wildcards.m
+    output:
+        "output/analytics/sensitivity/{construction}/{construction}_analytics_s_{sensitivity}_e_{epsilon}_k_{k}_m_{m}_2019_01_01.csv"
+    shell:
+        """
+        python {input[0]} --infn {input[1]} --construction {params.construction} --epsilon {params.epsilon} --sensitivity {params.sensitivity} --k {params.k} --m {params.m} --outfn {output}
         """
 
 

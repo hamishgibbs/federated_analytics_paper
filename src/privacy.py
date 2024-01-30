@@ -2,6 +2,7 @@ import sys
 import polars as pl
 import numpy as np
 from pure_ldp.frequency_oracles.apple_cms import CMSClient, CMSServer
+from alive_progress import alive_bar
 
 def k_anonymous_sum(data, group, T):
     
@@ -29,21 +30,40 @@ def bounded_sum_gdp(data, group, sensitivity, epsilon):
         pl.col('count').apply(lambda x: add_laplace_noise(x, epsilon, sensitivity)).alias('count')
     )
 
-def sum_ldp(data, group, sensitivity, epsilon):
+def sum_ldp(domain, data, group, sensitivity, epsilon):
 
     # Select total rows per uid <= sensitivity
     data = data.groupby('uid').apply(lambda x: sample_n(x, sensitivity))
-    
-    return (data.groupby(['uid'] + group)
-            .agg([pl.col('count').sum().alias('count')])
-            .with_columns(
-               pl.col('count').apply(lambda x: add_laplace_noise(x, epsilon, sensitivity)).alias('count')
-               )
-            .groupby(group)
-            .agg([pl.col('count').sum().alias('count')])
-            )
 
-def freq_cms(domain, data, m, k, v, epsilon):
+    accumulator_df = pl.DataFrame(schema={'geoid_o':pl.Utf8, 'geoid_d':pl.Utf8, 'count':pl.Float64})
+
+    uids = data['uid'].unique().to_list()
+    print("Applying Naive-LDP")
+    with alive_bar(len(uids)) as bar:
+       for uid in uids:
+            # LDP is applied to all possible OD pairs for each device, leading to a high level of noise
+            uid_domain = (domain.join(data.filter(pl.col('uid') == uid), on=['geoid_o', 'geoid_d'], how='left')
+                            .with_columns(pl.lit(uid).alias('uid'))
+                            .with_columns(pl.col('count').fill_null(0))
+                            .groupby(group)
+                            .agg([pl.col('count').sum().alias('count')])
+                            .with_columns(
+                                pl.col('count').apply(lambda x: add_laplace_noise(x, epsilon, sensitivity)).alias('count')
+                            )
+                        )
+            
+            accumulator_df = pl.concat([accumulator_df, uid_domain])
+            
+            accumulator_df = (
+                accumulator_df
+                .groupby(['geoid_o', 'geoid_d'])
+                .agg(pl.sum('count').alias('count'))
+            )
+            bar()
+    
+    return accumulator_df
+
+def freq_cms(domain, data, m, k, sensitivity, epsilon):
     """
     domain: polars dataframe with all pairs of geoid_o and geoid_d
     data: simulated individual trajectories
@@ -53,7 +73,7 @@ def freq_cms(domain, data, m, k, v, epsilon):
     epsilon: privacy budget
     """     
     # Select total rows per uid <= v
-    data = data.groupby('uid').apply(lambda x: sample_n(x, v))
+    data = data.groupby('uid').apply(lambda x: sample_n(x, sensitivity))
 
     data = data.join(domain, on=['geoid_o', 'geoid_d'], how='left')
 
@@ -70,8 +90,6 @@ def freq_cms(domain, data, m, k, v, epsilon):
     domain = domain.with_columns(pl.Series("count", freq))
 
     domain = domain.drop('od_id')
-
-    domain = domain.with_columns(pl.col('count').apply(lambda x: np.max([x, 0])).alias('count'))
 
     return domain     
 
@@ -103,7 +121,9 @@ def main():
                           sensitivity=10, 
                           epsilon=10)
     
-    ldp = sum_ldp(depr, ['geoid_o', 'geoid_d'], 
+    ldp = sum_ldp(domain,
+                  depr, 
+                  ['geoid_o', 'geoid_d'], 
                   sensitivity=10, 
                   epsilon=10)
 
@@ -111,7 +131,7 @@ def main():
                    depr, 
                    m=1024, 
                    k=10, 
-                   v=10,
+                   sensitivity=10,
                    epsilon=10)
 
     k_anonymous.write_csv(_outputs[0])
