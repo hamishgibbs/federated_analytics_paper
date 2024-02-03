@@ -21,12 +21,12 @@ conda create --name fed_analytics_paper python=3.9
 conda activate fed_analytics_paper
 
 # Install Python dependencies
-pip install -r requirements.txt
+conda run --name fed_analytics_paper pip install -r requirements.txt
 
 # Install R
-conda install -c r r
+conda run --name fed_analytics_paper conda install -c r r
 
 # Install R dependencies
-Rscript install_packages.R
+conda run --name fed_analytics_paper Rscript install_packages.R
 
 echo "Setup completed successfully."
