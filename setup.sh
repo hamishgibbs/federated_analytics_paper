@@ -17,7 +17,7 @@ else
 fi
 
 # Create a conda environment
-conda create --name fed_analytics_paper python=3.9
+conda create --name fed_analytics_paper python=3.11
 conda activate fed_analytics_paper
 
 # Install Python dependencies
