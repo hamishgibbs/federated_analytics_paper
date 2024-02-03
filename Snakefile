@@ -59,12 +59,14 @@ rule division_lu:
 
 rule download_counties:
     output:
+        "data/geo/tl_2019_us_county/tl_2019_us_county.shp"
+    params:
         zip_file="data/geo/tl_2019_us_county.zip",
-        unzipped="data/geo/tl_2019_us_county"
+        unzip_dir="data/geo/tl_2019_us_county"
     shell:
         """
-        wget -O {output.zip_file} https://www2.census.gov/geo/tiger/TIGER2019/COUNTY/tl_2019_us_county.zip
-        unzip -d {output.unzipped} {output.zip_file}
+        wget -O {params.zip_file} https://www2.census.gov/geo/tiger/TIGER2019/COUNTY/tl_2019_us_county.zip
+        unzip -d {params.unzip_dir} {params.zip_file}
         """
 
 rule counties_to_centroids:
