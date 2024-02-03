@@ -47,6 +47,14 @@ rule all:
 
 # rule to download mobility data by date pattern
 
+rule download_population: 
+    output:
+        "data/population/co-est2019-alldata-utf8.csv"
+    shell:
+        """
+        wget -O {output} https://www2.census.gov/programs-surveys/popest/datasets/2010-2019/counties/totals/co-est2019-alldata.csv
+        """
+
 rule division_lu:
     input:
         "data/population/co-est2019-alldata-utf8.csv"
