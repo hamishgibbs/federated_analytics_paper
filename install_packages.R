@@ -2,7 +2,7 @@ install.packages(c(
     "data.table",
     "ggplot2",
     "igraph",
-    "devtools",
+    "devtools"
 
 ))
 
