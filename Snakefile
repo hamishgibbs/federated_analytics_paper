@@ -57,6 +57,16 @@ rule division_lu:
         Rscript src/division_lu.R {input} {output}
         """
 
+rule download_counties:
+    output:
+        zip_file="data/geo/tl_2019_us_county.zip",
+        unzipped="data/geo/tl_2019_us_county"
+    shell:
+        """
+        wget -O {output.zip_file} https://www2.census.gov/geo/tiger/TIGER2019/COUNTY/tl_2019_us_county.zip
+        unzip -d {output.unzipped} {output.zip_file}
+        """
+
 rule counties_to_centroids:
     input:
         "data/geo/tl_2019_us_county/tl_2019_us_county.shp"
