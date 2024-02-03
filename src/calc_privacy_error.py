@@ -10,7 +10,7 @@ def main():
         (pl.col('count') / pl.sum("count")).alias('weight')
     )
     
-    infns = sys.argv[2:-1]
+    infns = sys.argv[2:-2]
 
     dtypes = {
         'epsilon': pl.Utf8,
@@ -27,7 +27,6 @@ def main():
 
     df = df.rename({'count': 'count_private'})
     df = df.join(base_analytics, on=['geoid_o', 'geoid_d'])
-
 
     # This could be made into a single function for annotations in fig 3
     df = df.with_columns(
@@ -58,6 +57,7 @@ def main():
         .drop(['mean_squared_error', 'mean_absolute_percentage_error', 'sum_weighted_squared_error', 'sum_weighted_absolute_percentage_error', 'sum_weight'])
     )
 
+    df.write_csv(sys.argv[-2])
     metrics_df.write_csv(sys.argv[-1])
 
 if __name__ == '__main__':

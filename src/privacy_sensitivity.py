@@ -57,7 +57,7 @@ def aggregate_with_privacy(
                    k=k,
                    m=m,
                    sensitivity=int(sensitivity),
-                   epsilon=10)
+                   epsilon=float(epsilon))
 
     else:
         raise ValueError("Unknown construction")

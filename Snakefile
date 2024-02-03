@@ -21,8 +21,8 @@ sensitivity_params = {
         "sensitivity": sensitivities
     },
     "CMS": {
-        "k": [1, 5, 10, 100, 1000],
-        "m": [2**i for i in range(2, 14, 2)],
+        "k": [1, 5, 10, 100, 1000, 10000],
+        "m": [2**i for i in range(6, 14, 2)],
         "epsilon": epsilons,
         "sensitivity": sensitivities
     },
@@ -40,7 +40,8 @@ rule all:
         "output/analytics/base_analytics/departure-diffusion_exp/base_analytics_2019_01_01.csv",
         "output/analytics/k_anonymous/departure-diffusion_exp/k_anonymous_analytics_2019_01_01.csv",
         "output/figs/k_anonymity_construction.png",
-        "output/analytics/sensitivity/privacy_sensitivity_2019_01_01.csv"
+        "output/analytics/sensitivity/privacy_sensitivity_2019_01_01.csv",
+        "output/figs/construction_epsilon_mape.png"
 
 # rule to download mobility data by date pattern
 
@@ -179,6 +180,7 @@ rule plot_privacy_construction:
 rule all_privacy_sensitivity:
     input:
         "src/calc_privacy_error.py",
+        "output/analytics/base_analytics/departure-diffusion_exp/base_analytics_2019_01_01.csv",
         expand("output/analytics/sensitivity/{construction}/{construction}_analytics_s_{sensitivity}_e_{epsilon}_k_{k}_m_{m}_2019_01_01.csv", 
         construction="GDP",
         sensitivity=sensitivity_params["GDP"]["sensitivity"],
@@ -198,6 +200,7 @@ rule all_privacy_sensitivity:
         k=sensitivity_params["CMS"]["k"],
         m=sensitivity_params["CMS"]["m"])
     output:
+        "output/analytics/sensitivity/privacy_sensitivity_errors_2019_01_01.csv",
         "output/analytics/sensitivity/privacy_sensitivity_2019_01_01.csv"
     shell:
         "python {input} {output}"
@@ -219,5 +222,15 @@ rule privacy_sensitivity:
         python {input[0]} --infn {input[1]} --construction {params.construction} --epsilon {params.epsilon} --sensitivity {params.sensitivity} --k {params.k} --m {params.m} --outfn {output}
         """
 
-
-# rule fit_collective: # full-scale fitting for the chosen model (if its a model that needs fitting)
+rule plot_privacy_error:
+    input: 
+        "src/plot_privacy_error.R",
+        "output/analytics/sensitivity/privacy_sensitivity_errors_2019_01_01.csv",
+        "output/analytics/sensitivity/privacy_sensitivity_2019_01_01.csv",
+        "data/geo/2019_us_county_distance_matrix.csv"
+    output:
+        "output/figs/construction_epsilon_mape.png",
+        "output/figs/construction_epsilon_ape_threshold.png",
+        "output/figs/construction_epsilon_freq_ape.png"
+    shell:
+        "Rscript {input} {output}"
