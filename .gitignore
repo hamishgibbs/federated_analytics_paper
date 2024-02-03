@@ -6,3 +6,4 @@ env
 Rplots.pdf
 .ipynb_checkpoints
 *.nbconvert.ipynb
+__pycache__

@@ -6,23 +6,26 @@ suppressPackageStartupMessages({
 
 if (interactive()) {
   .args <- c(
+    "data/geo/division_lu.csv",
     "data/population/pop_est2019_clean.csv",
     "data/geo/2019_us_county_distance_matrix.csv",
     "data/mobility/clean/daily_county2county_2019_01_01_clean.csv",
     "100",
     "500",
-    "output/gravity/summary/departure-diffusion_exp_2019_01_01_summary.csv",
-    "output/gravity/check/departure-diffusion_exp_2019_01_01_check.csv",
-    "output/gravity/pij/departure-diffusion_exp_2019_01_01_pij.csv",
-    "output/gravity/diagnostic/departure-diffusion_exp_2019_01_01_error.png",
-    "output/gravity/diagnostic/departure-diffusion_exp_2019_01_01_error.rds"
+    "2",
+    "output/gravity/summary/departure-diffusion_exp_2019_01_01_d_2_summary.csv",
+    "output/gravity/check/departure-diffusion_exp_2019_01_01_d_2_check.csv",
+    "output/gravity/pij/departure-diffusion_exp_2019_01_01_d_2_pij.csv",
+    "output/gravity/diagnostic/departure-diffusion_exp_2019_01_01_d_2_error.png",
+    "output/gravity/diagnostic/departure-diffusion_exp_2019_01_01_d_2_error.rds"
   )
 } else {
   .args <- commandArgs(trailingOnly = T)
 }
 
-N_BURN <- as.numeric(.args[4])
-N_SAMP <- as.numeric(.args[5])
+N_BURN <- as.numeric(.args[5])
+N_SAMP <- as.numeric(.args[6])
+division <- as.numeric(.args[7])
 .outputs <- tail(.args, 5)
 
 # Extract model type from output fn
@@ -37,21 +40,22 @@ if (MODEL_TYPE == "expnorm"){
 }
 
 # Define a subset of states for modelling
-states <- c("36", "42")
+divisions <- fread(.args[1])
+states <- subset(divisions, DIVISION == division)$STATE
 
-N <- fread(.args[1], 
+N <- fread(.args[2], 
         select=c("GEOID", "POPESTIMATE2019"),
         colClasses=c("GEOID"="character", "POPESTIMATE2019"="integer"))
 
 N <- N[substr(N$GEOID, 1, 2) %in% states, ]
 
-D <- fread(.args[2], 
+D <- fread(.args[3], 
         select=c("GEOID_origin", "GEOID_dest", "distance"),
         colClasses=c("GEOID_origin"="character", "GEOID_dest"="character", "distance"="numeric"))
 
 D <- D[substr(D$GEOID_origin, 1, 2) %in% states & substr(D$GEOID_dest, 1, 2) %in% states, ]
 
-M <- fread(.args[3],
+M <- fread(.args[4],
         select=c("geoid_o", "geoid_d", "pop_flows"),
         colClasses=c("geoid_o"="character", "geoid_d"="character", "pop_flows"="numeric"))
 
