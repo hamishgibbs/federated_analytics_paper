@@ -11,7 +11,7 @@ fi
 if ! command -v jags &> /dev/null
 then
     echo "JAGS is not installed. Installing JAGS..."
-    sudo apt-get update && apt-get install -y jags
+    apt-get update && apt-get install -y jags
 else
     echo "JAGS is already installed."
 fi
