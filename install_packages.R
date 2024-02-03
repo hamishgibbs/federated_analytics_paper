@@ -5,7 +5,6 @@ install.packages(c(
     "ggplot2",
     "igraph",
     "devtools"
-
-))
+), Ncpus = detectCores())
 
 devtools::install_github('COVID-19-Mobility-Data-Network/mobility')
