@@ -7,3 +7,4 @@ Rplots.pdf
 .ipynb_checkpoints
 *.nbconvert.ipynb
 __pycache__
+*.log

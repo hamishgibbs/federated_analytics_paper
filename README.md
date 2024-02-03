@@ -2,6 +2,8 @@
 
 Code supporting the publication __. 
 
+# Workflow diagram
+
 ![Diagram of Snakemake analysis pipeline.](./rulegraph.svg)
 
 # Installation
@@ -17,6 +19,6 @@ bash setup.sh
 # Data
 
 * Empirical mobility data is from the [COVID19USFlows](https://github.com/GeoDS/COVID19USFlows-DailyFlows) dataset.
-* Spatial boundaries are from __. 
-* Population estimates are from the US Census Bureau __ . 
+* Spatial boundaries are from the US Census __. 
+* Population estimates are from the US Census __ . 
 
