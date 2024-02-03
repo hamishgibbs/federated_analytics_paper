@@ -43,9 +43,16 @@ rule all:
         expand("output/sensitivity/collective_model_sensitivity/collective_error_comparison_date_{date}_d_{division}.png", date=FOCUS_DATE, division=FOCUS_DIVISION),
         "output/figs/k_anonymity_construction.png",
         "output/figs/construction_epsilon_mape.png",
-        "output/sensitivity/spatio_temporal_sensitivity/test.csv"
+        "output/sensitivity/spatio_temporal_sensitivity/test.csv",
+        "rulegraph.svg"
 
-# rule to download mobility data by date pattern
+rule current_rulegraph: 
+  input: 
+      "Snakefile"
+  output:
+      "rulegraph.svg"
+  shell:
+      "snakemake --rulegraph | dot -Tsvg > {output}"
 
 rule download_population: 
     output:

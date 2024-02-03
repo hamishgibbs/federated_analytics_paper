@@ -2,6 +2,8 @@
 
 Code supporting the publication __. 
 
+![Diagram of Snakemake analysis pipeline.](./rulegraph.svg)
+
 # Installation
 
 This repository uses conda for portability of R and Python code supporting the analysis. 
