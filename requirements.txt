@@ -4,3 +4,4 @@ plotnine
 pandas
 pure-ldp
 alive-progress
+snakemake
