@@ -18,7 +18,6 @@ fi
 
 # Create a conda environment
 conda create --name fed_analytics_paper python=3.11
-conda activate fed_analytics_paper
 
 # Install Python dependencies
 conda run --name fed_analytics_paper pip install -r requirements.txt
@@ -27,6 +26,11 @@ conda run --name fed_analytics_paper pip install -r requirements.txt
 conda run --name fed_analytics_paper conda install -c r r
 
 # Install R dependencies
-conda run --name fed_analytics_paper Rscript install_packages.R
+conda run --name fed_analytics_paper conda install -c conda-forge r-data.table r-ggplot2 r-igraph r-devtools
+
+conda activate fed_analytics_paper
+
+# Install R packages
+Rscript -e "devtools::install_github('COVID-19-Mobility-Data-Network/mobility')"
 
 echo "Setup completed successfully."
