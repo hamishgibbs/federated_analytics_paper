@@ -48,6 +48,16 @@ rule all:
 
 # rule to download mobility data by date pattern
 
+rule division_lu:
+    input:
+        "data/population/co-est2019-alldata-utf8.csv"
+    output:
+        "data/geo/division_lu.csv"
+    shell:
+        """
+        Rscript src/division_lu.R {input} {output}
+        """
+
 rule counties_to_centroids:
     input:
         "data/geo/tl_2019_us_county/tl_2019_us_county.shp"
@@ -101,6 +111,7 @@ rule clean_mob:
 rule collective_model_sensitivity:
     input:
         "src/fit_gravity.R",
+        "data/geo/division_lu.csv",
         "data/population/pop_est2019_clean.csv",
         "data/geo/2019_us_county_distance_matrix.csv",
         "data/mobility/clean/daily_county2county_{date}_clean.csv"
