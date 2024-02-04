@@ -142,8 +142,8 @@ rule collective_model_sensitivity:
         "data/geo/2019_us_county_distance_matrix.csv",
         "data/mobility/clean/daily_county2county_date_{date}_clean.csv"
     params:
-        n_burn=500,
-        n_samp=1000,
+        n_burn=lambda wildcards: 500 if wildcards.division == "2" else 100,
+        n_samp=lambda wildcards: 1000 if wildcards.division == "2" else 500,
         division=lambda wildcards: wildcards.division,
     output:
         "output/gravity/summary/{collective_type}_date_{date}_d_{division}_summary.csv",
