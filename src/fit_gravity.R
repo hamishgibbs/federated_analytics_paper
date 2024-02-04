@@ -41,7 +41,7 @@ if (MODEL_TYPE == "expnorm"){
 
 # Define a subset of states for modelling
 divisions <- fread(.args[1])
-states <- subset(divisions, DIVISION == division)$STATE
+states <- subset(divisions, SUBDIVISION == division)$STATE
 
 N <- fread(.args[2], 
         select=c("GEOID", "POPESTIMATE2019"),
