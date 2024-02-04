@@ -6,7 +6,8 @@ def main():
     pop = pl.read_csv(
         sys.argv[1],
         columns=['STATE', 'COUNTY', 'STNAME', 'CTYNAME', 'POPESTIMATE2019'],
-        dtypes={'STATE': pl.Utf8, 'COUNTY': pl.Utf8}
+        dtypes={'STATE': pl.Utf8, 'COUNTY': pl.Utf8},
+        encoding='utf8-lossy'
     )
 
     pop = pop.with_columns(
