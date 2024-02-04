@@ -5,3 +5,4 @@ pandas
 pure-ldp
 alive-progress
 snakemake
+click
