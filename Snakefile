@@ -34,7 +34,7 @@ sensitivity_params = {
 FOCUS_DATE = "2019_01_01"
 FOCUS_DIVISION = "2"
 DATES = sensitivity_dates()
-DIVISIONS = [str(i) for i in [2]]
+DIVISIONS = [str(i) for i in [1, 2, 8, 9]]
 
 rule all:
     input:
