@@ -6,3 +6,5 @@ pure-ldp
 alive-progress
 snakemake
 click
+scikit-learn
+nbconvert
