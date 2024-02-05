@@ -228,7 +228,7 @@ rule simulate_depr:
         "output/depr/{collective_type}/simulated_depr_date_{date}_d_{division}.csv"
     shell:
         """
-        python {input} {output}
+        time python {input} {output}
         """
 
 rule base_analytics:
@@ -331,7 +331,7 @@ rule privacy_sensitivity:
         "output/analytics/sensitivity/{construction}/{construction}_analytics_s_{sensitivity}_e_{epsilon}_k_{k}_m_{m}_date_{date}_d_{division}.csv"
     shell:
         """
-        python {input[0]} --infn {input[1]} --construction {params.construction} --epsilon {params.epsilon} --sensitivity {params.sensitivity} --k {params.k} --m {params.m} --outfn {output}
+        time python {input[0]} --infn {input[1]} --construction {params.construction} --epsilon {params.epsilon} --sensitivity {params.sensitivity} --k {params.k} --m {params.m} --outfn {output}
         """
 
 rule plot_privacy_error:
@@ -347,25 +347,9 @@ rule plot_privacy_error:
     shell:
         "Rscript {input} {output}"
 
-# Utility rules to collect outputs from a remote server
-
-rule compress_output: # Compress output directory (execute in the server)
-    input:
-        "output"
-    output:
-        "output.tar.gz"
-    shell:
-        "tar -czvf {output} {input}"
+# Utility rule to collect outputs from a remote server
 
 rule download_output: # Download compressed output directory (execute locally)
-    input:
-        "output.tar.gz"
     shell:
-        f"scp {os.getenv('REMOTE_USER')}@{os.getenv('REMOTE_HOST')}:{os.getenv('REMOTE_OUTPUT_DIR')}/output.tar.gz output.tar.gz"
-
-rule decompress_output: # Decompress output directory recursively (execute locally)
-    input:
-        "output.tar.gz"
-    shell:
-        "tar -xzvf {input}"
+        f"scp -r {os.getenv('REMOTE_USER')}@{os.getenv('REMOTE_HOST')}:{os.getenv('REMOTE_OUTPUT_DIR')}/output output"
     
