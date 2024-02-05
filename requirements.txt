@@ -8,3 +8,5 @@ snakemake
 click
 scikit-learn
 nbconvert
+ipykernel
+patchworklib

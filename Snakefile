@@ -304,3 +304,11 @@ rule plot_privacy_error:
         "output/figs/construction_epsilon_freq_ape.png"
     shell:
         "Rscript {input} {output}"
+
+rule compress_output:
+    input:
+        "output"
+    output:
+        "output.tar.gz"
+    shell:
+        "tar -czvf {output} {input}"
