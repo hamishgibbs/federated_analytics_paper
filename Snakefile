@@ -235,7 +235,7 @@ rule plot_privacy_construction:
         'output/figs/k_anonymity_construction.png',
         'output/figs/gdp_construction.png',
         'output/figs/naive_ldp_construction.png',
-        'output/figs/cms_construction.png'
+        'output/figs/cms_construction.png',
     shell:
         """
         python {input} {output}

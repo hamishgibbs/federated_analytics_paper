@@ -16,18 +16,11 @@ else:
         "../output/analytics/cms/departure-diffusion_exp/cms_analytics_2019_01_01.csv",
         '../output/figs/k_anonymity_construction.png',
         '../output/figs/gdp_construction.png',
-        '../output/figs/gdp_construction.png',
         '../output/figs/naive_ldp_construction.png',
         '../output/figs/cms_construction.png',
-        '../output/figs/gdp_construction_trunc.png',
-        '../output/figs/naive_ldp_construction_trunc.png',
-        '../output/figs/cms_construction_trunc.png'
     ]
 
-_outputs = _args[-8:]
-
-print(_outputs)
-raise Exception('stop')
+_outputs = _args[-4:]
 
 # %%
 base = pd.read_csv(_args[0], dtype={'geoid_o': str, 'geoid_d': str})
@@ -100,7 +93,3 @@ pa.save(_outputs[0], width=width, height=height, dpi=300)
 pb.save(_outputs[1], width=width, height=height, dpi=300)
 pc.save(_outputs[2], width=width, height=height, dpi=300)
 pd.save(_outputs[3], width=width, height=height, dpi=300)
-
-pb_trunc.save(_outputs[4], width=width, height=height, dpi=300)
-pc_trunc.save(_outputs[5], width=width, height=height, dpi=300)
-pd_trunc.save(_outputs[6], width=width, height=height, dpi=300)
