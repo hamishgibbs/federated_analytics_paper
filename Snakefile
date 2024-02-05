@@ -246,7 +246,7 @@ rule base_analytics:
 rule spatio_temporal_sensitivity:
     input:
         "src/plot_spatio_temporal_sensitivity.R",
-        expand("output/gravity/summary/departure-diffusion_exp_date_{date}_d_{division}_summary.csv", date=DATES, division=DIVISIONS)
+        expand("output/gravity/check/departure-diffusion_exp_date_{date}_d_{division}_check.csv", date=DATES, division=DIVISIONS)
     output:
         "output/figs/date_division_r2_by_date_type.png",
         "output/figs/date_division_r2_by_month.png"

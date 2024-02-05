@@ -1,6 +1,7 @@
 suppressPackageStartupMessages({
   library(data.table)
   library(ggplot2)
+  library(timeDate)
 })
 
 if (interactive()) {
@@ -77,13 +78,13 @@ p_r_date_type <- ggplot(r2_check_sum) +
        color=NULL) + 
   theme(strip.background = element_blank(),
         strip.text = element_text(face="bold"),
+        panel.border = element_rect(size=0.2, color="black", fill="transparent"),
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank())
-
 ggsave(.outputs[1],
        p_r_date_type,
        width=10,
-       height=6, 
+       height=5, 
        units="in")  
 
 p_r_time <- ggplot(subset(r2_check, date_type %in% c("Weekday", "Weekend"))) + 
@@ -98,5 +99,5 @@ p_r_time <- ggplot(subset(r2_check, date_type %in% c("Weekday", "Weekend"))) +
 ggsave(.outputs[2],
        p_r_time,
        width=10,
-       height=6, 
+       height=8, 
        units="in")  
