@@ -46,6 +46,7 @@ rule all:
         "output/figs/empirical_network_map.png",
         'output/figs/spacetime_prism.png',
         "output/figs/k_anonymity_example.png",
+        "output/figs/date_division_r2_by_date_type.png",
         expand("output/sensitivity/collective_model_sensitivity/collective_error_comparison_date_{date}_d_{division}.png", date=FOCUS_DATE, division=FOCUS_DIVISION),
         "output/figs/k_anonymity_construction.png",
         "output/figs/construction_epsilon_mape.png",
@@ -176,7 +177,7 @@ rule plot_gdp_examples:
         python {input} {output}
         """
 
-rule collective_model_sensitivity:
+rule fit_gravity:
     input:
         "src/fit_gravity.R",
         "data/geo/division_lu.csv",
@@ -242,14 +243,17 @@ rule base_analytics:
         python {input} {output}
         """
 
-# TODO: Division and date sensitivity here
 rule spatio_temporal_sensitivity:
     input:
+        "src/plot_spatio_temporal_sensitivity.R",
         expand("output/gravity/summary/departure-diffusion_exp_date_{date}_d_{division}_summary.csv", date=DATES, division=DIVISIONS)
     output:
-        "output/sensitivity/spatio_temporal_sensitivity/test.csv"
+        "output/figs/date_division_r2_by_date_type.png",
+        "output/figs/date_division_r2_by_month.png"
     shell:
-        "touch {output}"
+        """
+        Rscript  {input} {output}
+        """
 
 rule compare_privacy_construction:
     input:
