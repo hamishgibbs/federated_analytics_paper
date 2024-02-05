@@ -7,8 +7,6 @@ alive-progress
 snakemake
 click
 scikit-learn
-nbconvert
-ipykernel
 patchworklib
 seaborn
 matplotlib
