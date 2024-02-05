@@ -102,7 +102,7 @@ def sample_population(pop, pop_sample_rate):
 
 if __name__ == '__main__':
 
-    POP_SAMPLE_RATE = 0.005
+    POP_SAMPLE_RATE = 0.001
     RHO = 0.6
     GAMMA = 0.21
     BETA = 0.8
