@@ -225,7 +225,7 @@ rule compare_privacy_construction:
 
 rule plot_privacy_construction:
     input:
-        "src/plot_privacy_construction.ipynb",
+        "src/plot_privacy_construction.py",
         f"output/analytics/base_analytics/departure-diffusion_exp/base_analytics_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv",
         f"output/analytics/k_anonymous/departure-diffusion_exp/k_anonymous_analytics_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv",
         f"output/analytics/gdp/departure-diffusion_exp/gdp_analytics_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv",
@@ -238,7 +238,7 @@ rule plot_privacy_construction:
         'output/figs/cms_construction.png'
     shell:
         """
-        jupyter nbconvert --to notebook --execute {input[0]}
+        python {input} {output}
         """
 
 rule all_privacy_sensitivity:
