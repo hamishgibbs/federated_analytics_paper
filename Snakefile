@@ -153,7 +153,7 @@ rule plot_space_time_prism:
 rule plot_simulated_mobility:
     input:
         "src/plot_simulated_mobility.R",
-        f"data/mobility/clean/daily_county2county_{FOCUS_DATE}_clean.csv",
+        f"data/mobility/clean/daily_county2county_date_{FOCUS_DATE}_clean.csv",
         f"output/analytics/base_analytics/departure-diffusion_exp/base_analytics_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv",
         "data/geo/2019_us_county_distance_matrix.csv"
     output:
