@@ -45,6 +45,7 @@ rule all:
         "rulegraph.svg",
         "output/figs/empirical_network_map.png",
         'utput/figs/spacetime_prism.png',
+        "output/figs/k_anonymity_example.png",
         expand("output/sensitivity/collective_model_sensitivity/collective_error_comparison_date_{date}_d_{division}.png", date=FOCUS_DATE, division=FOCUS_DIVISION),
         "output/figs/k_anonymity_construction.png",
         "output/figs/construction_epsilon_mape.png",
@@ -161,6 +162,18 @@ rule plot_simulated_mobility:
     shell:
         """
         Rscript {input} {output}
+        """
+
+rule plot_gdp_examples:
+    input:
+        "src/plot_gdp_examples.py",
+    output:
+        "output/figs/k_anonymity_example.png",
+        "output/figs/gdp_naive_example.png",
+        "output/figs/ldp_naive_example.png"
+    shell:
+        """
+        python {input} {output}
         """
 
 rule collective_model_sensitivity:
