@@ -1,4 +1,8 @@
+import os
+from dotenv import load_dotenv
 from src.calc_sensitivity_dates import sensitivity_dates
+
+load_dotenv()
 
 collective_types = [
     "gravity_basic", 
@@ -44,7 +48,8 @@ rule all:
         "output/figs/k_anonymity_construction.png",
         "output/figs/construction_epsilon_mape.png",
         "output/sensitivity/spatio_temporal_sensitivity/test.csv",
-        "rulegraph.svg"
+        "rulegraph.svg",
+        "output/figs/empirical_network_map.png"
 
 rule current_rulegraph: 
   input: 
@@ -132,6 +137,20 @@ rule clean_mob:
     shell:
         """
         python src/clean_mob.py {input} {output}
+        """
+
+rule plot_simulated_mobility:
+    input:
+        "src/plot_simulated_mobility.R",
+        f"data/mobility/clean/daily_county2county_{FOCUS_DATE}_clean.csv",
+        f"output/analytics/base_analytics/departure-diffusion_exp/base_analytics_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv",
+        "data/geo/2019_us_county_distance_matrix.csv"
+    output:
+        "output/figs/empirical_network_map.png",
+        "output/figs/depr_network_map.png"
+    shell:
+        """
+        Rscript {input} {output}
         """
 
 rule collective_model_sensitivity:
@@ -305,10 +324,25 @@ rule plot_privacy_error:
     shell:
         "Rscript {input} {output}"
 
-rule compress_output:
+# Utility rules to collect outputs from a remote server
+
+rule compress_output: # Compress output directory (execute in the server)
     input:
         "output"
     output:
         "output.tar.gz"
     shell:
         "tar -czvf {output} {input}"
+
+rule download_output: # Download compressed output directory (execute locally)
+    input:
+        "output.tar.gz"
+    shell:
+        f"scp {os.getenv('REMOTE_USER')}@{os.getenv('REMOTE_HOST')}:{os.getenv('REMOTE_OUTPUT_DIR')}/output.tar.gz output.tar.gz"
+
+rule decompress_output: # Decompress output directory recursively (execute locally)
+    input:
+        "output.tar.gz"
+    shell:
+        "tar -xzvf {input}"
+    

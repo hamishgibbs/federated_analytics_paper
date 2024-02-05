@@ -11,3 +11,4 @@ nbconvert
 ipykernel
 patchworklib
 seaborn
+dotenv
