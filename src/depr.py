@@ -2,6 +2,7 @@ import sys
 import polars as pl
 import numpy as np
 import powerlaw
+from alive_progress import alive_bar
 
 def calc_waiting_time(beta, tau):
     return powerlaw.Power_Law(0, parameters=[1.+ beta, 1.0/tau]).generate_random(1)[0]
@@ -76,12 +77,15 @@ def population_depr(pop_sample, pij, rho, gamma, beta, tau, duration):
     all_trips = np.array([], dtype=[('uid', 'i4'), ('time', 'f4'), ('geoid', 'U10')])
 
     uid = 0
-    for row in pop_sample.to_dicts():
-        if row['pop_sample']:
-            for _ in range(row['pop_sample']):
-                trips = depr(uid, row['GEOID'], pij, rho, gamma, beta, tau, duration)
-                all_trips = np.hstack((all_trips, trips))
-                uid += 1
+
+    with alive_bar(pop_sample['pop_sample'].sum()) as bar:
+        for row in pop_sample.to_dicts():
+            if row['pop_sample']:
+                for _ in range(row['pop_sample']):
+                    trips = depr(uid, row['GEOID'], pij, rho, gamma, beta, tau, duration)
+                    all_trips = np.hstack((all_trips, trips))
+                    uid += 1
+                    bar()
     
     return pl.DataFrame(all_trips)
 
