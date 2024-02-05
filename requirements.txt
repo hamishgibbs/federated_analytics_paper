@@ -12,3 +12,5 @@ ipykernel
 patchworklib
 seaborn
 dotenv
+matplotlib
+geopandas

@@ -42,14 +42,13 @@ DIVISIONS = [str(i) for i in [1, 2, 8, 9]]
 
 rule all:
     input:
-        "data/geo/2019_us_county_distance_matrix.csv",
-        "data/population/pop_est2019_clean.csv",
+        "rulegraph.svg",
+        "output/figs/empirical_network_map.png",
+        'utput/figs/spacetime_prism.png',
         expand("output/sensitivity/collective_model_sensitivity/collective_error_comparison_date_{date}_d_{division}.png", date=FOCUS_DATE, division=FOCUS_DIVISION),
         "output/figs/k_anonymity_construction.png",
         "output/figs/construction_epsilon_mape.png",
-        "output/sensitivity/spatio_temporal_sensitivity/test.csv",
-        "rulegraph.svg",
-        "output/figs/empirical_network_map.png"
+        "output/sensitivity/spatio_temporal_sensitivity/test.csv"
 
 rule current_rulegraph: 
   input: 
@@ -137,6 +136,17 @@ rule clean_mob:
     shell:
         """
         python src/clean_mob.py {input} {output}
+        """
+
+rule plot_space_time_prism:
+    input:
+        "src/plot_space_time_prism.py",
+        "data/geo/tl_2019_us_county/tl_2019_us_county.shp"
+    output:
+        'output/figs/spacetime_prism.png'
+    shell:
+        """
+        python {input} {output}
         """
 
 rule plot_simulated_mobility:
