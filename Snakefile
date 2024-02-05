@@ -46,7 +46,7 @@ rule all:
         "output/figs/empirical_network_map.png",
         'output/figs/spacetime_prism.png',
         "output/figs/k_anonymity_example.png",
-        "output/figs/date_division_r2_by_date_type.png",
+        "output/figs/spatiotemporal_r2_by_date_type.png",
         expand("output/sensitivity/collective_model_sensitivity/collective_error_comparison_date_{date}_d_{division}.png", date=FOCUS_DATE, division=FOCUS_DIVISION),
         "output/figs/k_anonymity_construction.png",
         "output/figs/construction_epsilon_mape.png",
