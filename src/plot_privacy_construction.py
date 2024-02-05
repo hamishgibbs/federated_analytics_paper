@@ -25,6 +25,10 @@ else:
     ]
 
 _outputs = _args[-8:]
+
+print(_outputs)
+raise Exception('stop')
+
 # %%
 base = pd.read_csv(_args[0], dtype={'geoid_o': str, 'geoid_d': str})
 k_anonymous = pd.read_csv(_args[1], dtype={'geoid_o': str, 'geoid_d': str}).rename(columns={'count': 'count_k_anonymous'})

@@ -10,3 +10,4 @@ scikit-learn
 nbconvert
 ipykernel
 patchworklib
+seaborn
