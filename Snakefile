@@ -44,7 +44,7 @@ rule all:
     input:
         "rulegraph.svg",
         "output/figs/empirical_network_map.png",
-        'utput/figs/spacetime_prism.png',
+        'output/figs/spacetime_prism.png',
         "output/figs/k_anonymity_example.png",
         expand("output/sensitivity/collective_model_sensitivity/collective_error_comparison_date_{date}_d_{division}.png", date=FOCUS_DATE, division=FOCUS_DIVISION),
         "output/figs/k_anonymity_construction.png",
