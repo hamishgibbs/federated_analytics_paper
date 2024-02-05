@@ -11,14 +11,15 @@ if (interactive()) {
       pattern="*.csv",
       full.names = TRUE
       ),
-    "output/figs/date_division_r2_by_date_type.png",
-    "output/figs/date_division_r2_by_month.png"
+    "output/figs/spatiotemporal_r2_by_date_type.png",
+    "output/figs/spatiotemporal_r2_by_month.png",
+    "output/figs/spatiotemporal_error_metrics_summary.csv"
   )
 } else {
   .args <- commandArgs(trailingOnly = T)
 }
 
-.outputs <- tail(.args, 2)
+.outputs <- tail(.args, 3)
 
 check_fn <- .args[grep("departure-diffusion_exp", .args)]
 
@@ -101,3 +102,13 @@ ggsave(.outputs[2],
        width=10,
        height=8, 
        units="in")  
+
+
+error_summary <- subset(check, metric != "DIC")[, .(min_value = round(min(value), 3), 
+          max_value = round(max(value), 3), 
+          mean_value = round(mean(value), 3),
+          median_value = round(median(value), 3)), by =c("metric", "division")]
+
+fwrite(error_summary, .outputs[3])
+
+
