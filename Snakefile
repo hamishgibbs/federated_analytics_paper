@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from datetime import datetime, timedelta
 from src.calc_sensitivity_dates import sensitivity_dates
 
 load_dotenv()
@@ -40,9 +41,12 @@ FOCUS_DIVISION = "2"
 DATES = sensitivity_dates()
 DIVISIONS = [str(i) for i in [1, 2, 8, 9]]
 
+SPACE_K=list(range(5, 85, 10))
+TIME_T=list(range(1, 8))
+
 rule all:
     input:
-        "rulegraph.svg",
+        "rulegraph.png",
         "output/figs/empirical_network_map.png",
         'output/figs/spacetime_prism.png',
         "output/figs/k_anonymity_example.png",
@@ -50,15 +54,15 @@ rule all:
         expand("output/sensitivity/collective_model_sensitivity/collective_error_comparison_date_{date}_d_{division}.png", date=FOCUS_DATE, division=FOCUS_DIVISION),
         "output/figs/k_anonymity_construction.png",
         "output/figs/construction_epsilon_mape.png",
-        "output/sensitivity/spatio_temporal_sensitivity/test.csv"
+        "output/figs/spacetime_raster.png"
 
 rule current_rulegraph: 
   input: 
       "Snakefile"
   output:
-      "rulegraph.svg"
+      "rulegraph.png"
   shell:
-      "snakemake --rulegraph | dot -Tsvg > {output}"
+      "snakemake --rulegraph | dot -Tpng > {output}"
 
 rule download_population: 
     output:
@@ -322,7 +326,7 @@ rule all_privacy_sensitivity:
     shell:
         "python {input} {output}"
 
-rule privacy_sensitivity:
+rule apply_privacy:
     input:
         "src/privacy_sensitivity.py",
         "output/depr/departure-diffusion_exp/simulated_depr_date_{date}_d_{division}.csv"
@@ -348,7 +352,82 @@ rule plot_privacy_error:
     output:
         "output/figs/construction_epsilon_mape.png",
         "output/figs/construction_epsilon_ape_threshold.png",
-        "output/figs/construction_epsilon_freq_ape.png"
+        "output/figs/construction_epsilon_ape_threshold_full.png",
+        "output/figs/construction_epsilon_freq_ape.png",
+        "output/figs/construction_sensitivity_sensitivity.png",
+        "output/figs/construction_m_k_sensitivity.png"
+    shell:
+        "Rscript {input} {output}"
+
+rule cluster_counties:
+    input:
+        "src/cluster_counties.R",
+        "data/geo/tl_2019_us_county/tl_2019_us_county.shp",
+        "output/depr/departure-diffusion_exp/simulated_depr_date_2019_01_01_d_2.csv"
+    output:
+        "output/figs/counties_cluster_dendro.png",
+        "output/figs/counties_cluster_area.png",
+        "output/figs/counties_cluster_map.png",
+        "output/space_time_scale/spatial_cluster_geoids.csv",
+        "output/space_time_scale/spatial_cluster_mean_area.csv"
+    shell:
+        "Rscript {input} {output}"
+
+def generate_dates(start_date, t):
+    start = datetime.strptime(start_date, "%Y_%m_%d")
+    return [(start + timedelta(days=d)).strftime("%Y_%m_%d") for d in range(int(t))]
+
+rule agg_depr_space_time:
+    input:
+        script="src/agg_depr_space_time.py",
+        geoid="output/space_time_scale/spatial_cluster_geoids.csv",
+        depr=lambda wildcards: expand("output/depr/departure-diffusion_exp/simulated_depr_date_{date}_d_{division}.csv", 
+            date=generate_dates(FOCUS_DATE, wildcards.t), division=FOCUS_DIVISION)
+    params:
+        space=lambda wildcards: wildcards.space,
+        t=lambda wildcards: wildcards.t
+    output:
+        "output/space_time_scale/agg/simulated_depr_space_{space}_time_{t}.csv"
+    shell:
+        "python {input.script} {params.space} {params.t} {input.geoid} {input.depr} {output}"
+
+rule apply_privacy_space_time:
+    input:
+        "src/privacy_sensitivity.py",
+        "output/space_time_scale/agg/simulated_depr_space_{space}_time_{t}.csv"
+    params:
+        construction=lambda wildcards: wildcards.construction,
+        epsilon=lambda wildcards: wildcards.epsilon,
+        sensitivity=lambda wildcards: wildcards.sensitivity,
+        k=lambda wildcards: wildcards.k,
+        m=lambda wildcards: wildcards.m
+    output:
+        "output/space_time_scale/analytics/{construction}/{construction}_analytics_s_{sensitivity}_e_{epsilon}_k_{k}_m_{m}_space_{space}_time_{t}.csv"
+    shell:
+        """
+        time python {input[0]} --infn {input[1]} --construction {params.construction} --epsilon {params.epsilon} --sensitivity {params.sensitivity} --k {params.k} --m {params.m} --outfn {output}
+        """
+
+rule plot_privacy_error_space_time:
+    input:
+        "src/plot_privacy_error_space_time.R",
+        "output/space_time_scale/spatial_cluster_mean_area.csv",
+        expand("output/space_time_scale/agg/simulated_depr_space_{space}_time_{t}.csv", 
+            space=SPACE_K,
+            t=TIME_T),
+        expand("output/space_time_scale/analytics/{construction}/{construction}_analytics_s_{sensitivity}_e_{epsilon}_k_{k}_m_{m}_space_{space}_time_{t}.csv", 
+            construction=["CMS"],
+            sensitivity=[1000],
+            epsilon=[1, 5, 10, 15],
+            k=[10_000],
+            m=[4096],
+            space=SPACE_K,
+            t=TIME_T
+        )
+    output:
+        "output/figs/spacetime_raster.png",
+        "output/figs/time_agg_freq_mape.png",
+        "output/figs/space_time_epsilon.png"
     shell:
         "Rscript {input} {output}"
 

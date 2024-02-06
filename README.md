@@ -4,7 +4,7 @@ Code supporting the publication __.
 
 # Workflow diagram
 
-![Diagram of Snakemake analysis pipeline.](./rulegraph.svg)
+![Diagram of Snakemake analysis pipeline.](./rulegraph.png)
 
 # Installation
 

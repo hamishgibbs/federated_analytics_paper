@@ -6,8 +6,9 @@ suppressPackageStartupMessages({
 
 if (interactive()) {
   .args <- c(
-    "data/mobility/clean/daily_county2county_2019_01_01_clean.csv",
-    "output/analytics/base_analytics/departure-diffusion_exp/base_analytics_2019_01_01.csv",
+    "data/mobility/clean/daily_county2county_date_2019_01_01_clean.csv",
+    "output/gravity/gravity/pij/departure-diffusion_exp_date_2019_01_01_d_2_pij.csv",
+    "output/analytics/base_analytics/departure-diffusion_exp/base_analytics_date_2019_01_01_d_2.csv",
     "data/geo/2019_us_county_distance_matrix.csv",
     "output/figs/empirical_network_map.png",
     "output/figs/depr_network_map.png"
@@ -20,9 +21,11 @@ if (interactive()) {
 
 empirical <- fread(.args[1], 
                    colClasses=c("geoid_o"="character", "geoid_d"="character"))
-depr <- fread(.args[2],
+gravity <- fread(.args[2], 
+                   colClasses=c("geoid_o"="character", "geoid_d"="character"))
+depr <- fread(.args[3],
               colClasses=c("geoid_o"="character", "geoid_d"="character"))
-dist <- fread(.args[3],
+dist <- fread(.args[4],
               colClasses=c("GEOID_origin"="character", "GEOID_dest"="character"))
 
 # filter for states
@@ -49,14 +52,8 @@ depr$betweenness <- edge_betweenness(g_depr)
 
 dist[empirical, 
      on=c("GEOID_origin" = "geoid_o", "GEOID_dest" = "geoid_d"), 
-     empirical_btw := betweenness]
-dist[empirical, 
-     on=c("GEOID_origin" = "geoid_o", "GEOID_dest" = "geoid_d"), 
      empirical_weight := weight]
 
-dist[depr, 
-     on=c("GEOID_origin" = "geoid_o", "GEOID_dest" = "geoid_d"), 
-     depr_btw := betweenness]
 dist[depr, 
      on=c("GEOID_origin" = "geoid_o", "GEOID_dest" = "geoid_d"), 
      depr_weight := weight]
@@ -73,13 +70,6 @@ dist_empirical <- dist[, .(lng_origin, lat_origin, lng_dest, lat_dest, id, empir
 dist_empirical[, pij := empirical_pij]
 dist_depr <- dist[, .(lng_origin, lat_origin, lng_dest, lat_dest, id, depr_pij)]
 dist_depr[, pij := depr_pij]
-
-# d-epr to empirical comparison
-ggplot() + 
-  geom_point(data=dist_empirical, aes(x = id, y = pij), size=0.2) + 
-  geom_point(data=dist_depr, aes(x = id, y = pij), color='red', size=0.2) + 
-  scale_y_continuous(trans="log10") + 
-  scale_x_continuous(trans="log10")
 
 plot_pij_network <- function(dist, title, zoom_y, zoom_x, color){
   
@@ -122,4 +112,24 @@ ggsave(.outputs[2],
        units="in")  
 
 dist_empirical
+
+# d-epr to empirical comparison
+dist[gravity, on=c("GEOID_origin"="geoid_o", "GEOID_dest"="geoid_d"), gravity_pij := value]
+dist[, gravity_pij := gravity_pij / sum(gravity_pij)]
+
+dist <- dist[order(distance)]
+dist[, id := .I]
+
+# Compare gravity with depr distance kernel
+ggplot(dist) + 
+  geom_point(aes(x = distance, y = gravity_pij), color="blue", size=0.2) + 
+  geom_point(aes(x = distance, y = depr_pij), color="red", size=0.2) + 
+  scale_y_continuous(trans="pseudo_log", labels=scales::comma) + 
+  scale_x_continuous(trans="pseudo_log")
+
+ggplot() + 
+  geom_point(data=dist_empirical, aes(x = id, y = pij), size=0.2) + 
+  geom_point(data=dist_depr, aes(x = id, y = pij), color='red', size=0.2) + 
+  scale_y_continuous(trans="log10", labels=scales::comma) + 
+  scale_x_continuous(trans="log10")
 

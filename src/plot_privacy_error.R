@@ -5,18 +5,21 @@ suppressPackageStartupMessages({
 
 if (interactive()) {
   .args <- c(
-    "output/analytics/sensitivity/privacy_sensitivity_errors_2019_01_01.csv",
-    "output/analytics/sensitivity/privacy_sensitivity_2019_01_01.csv",
+    "output/analytics/sensitivity/privacy_sensitivity_errors_date_2019_01_01_d_2.csv",
+    "output/analytics/sensitivity/privacy_sensitivity_date_2019_01_01_d_2.csv",
     "data/geo/2019_us_county_distance_matrix.csv",
     "output/figs/construction_epsilon_mape.png",
     "output/figs/construction_epsilon_ape_threshold.png",
-    "output/figs/construction_epsilon_freq_ape.png"
+    "output/figs/construction_epsilon_ape_threshold_full.png",
+    "output/figs/construction_epsilon_freq_ape.png",
+    "output/figs/construction_sensitivity_sensitivity.png",
+    "output/figs/construction_m_k_sensitivity.png"
   )
 } else {
   .args <- commandArgs(trailingOnly = T)
 }
 
-.outputs <- tail(.args, 3)
+.outputs <- tail(.args, 6)
 
 errors <- fread(.args[1])
 error_metrics <- fread(.args[2])
@@ -68,7 +71,7 @@ cms_error <- subset(errors,
                          k == 1000)
 
 error_threshold <- rbind(cms_error, gdp_error)
-error_threshold <- subset(error_threshold, epsilon %in% c(1, 5, 10, 15))
+error_threshold <- subset(error_threshold, epsilon %in% c(0.1, 0.5, 1, 5, 10, 15))
 
 ape_threshold_res <- list()
 ape_thresholds <- c(1, 5, 10, 100)
@@ -83,13 +86,17 @@ for (i in 1:length(ape_thresholds)){
 
 ape_threshold_res <- do.call(rbind, ape_threshold_res)
 
+# Pull values for manusript
+subset(ape_threshold_res, construction=="GDP" & ape_threshold == 5)
+subset(ape_threshold_res, construction=="CMS" & ape_threshold == 5)
+
 ape_threshold_res_long <- melt(ape_threshold_res, id.vars = c('construction', 'epsilon', 'sensitivity', 'm', 'k', 'ape_threshold'))
 
 ape_threshold_res_long[, ape_threshold := factor(ape_threshold, levels=ape_thresholds,
                                                  labels=c("1%", "5%", "10%", "100%"))]
 ape_threshold_res_long[, label := factor(paste0(construction, " (ϵ=", epsilon, ")"), 
-                                         levels=c("GDP (ϵ=1)", "GDP (ϵ=5)", "GDP (ϵ=10)", "GDP (ϵ=15)",
-                                                  "CMS (ϵ=1)", "CMS (ϵ=5)", "CMS (ϵ=10)", "CMS (ϵ=15)"))]
+                                         levels=c("GDP (ϵ=0.1)", "GDP (ϵ=0.5)", "GDP (ϵ=1)", "GDP (ϵ=5)", "GDP (ϵ=10)", "GDP (ϵ=15)",
+                                                  "CMS (ϵ=0.1)", "CMS (ϵ=0.5)", "CMS (ϵ=1)", "CMS (ϵ=5)", "CMS (ϵ=10)", "CMS (ϵ=15)"))]
 ape_threshold_res_long[, variable := factor(variable, levels=c("prop_od", "prop_count"),
                                             labels=c("Origin-Destination Pairs", "Trips"))]
 
@@ -98,7 +105,7 @@ construction_epsilon_pal <- c(
   '#f1eef6','#bdc9e1','#74a9cf','#0570b0'
 )
 
-p_ape_thresh <- ggplot(ape_threshold_res_long) + 
+p_ape_thresh <- ggplot(subset(ape_threshold_res_long, epsilon %in% c(1, 5, 10, 15))) + 
   geom_vline(xintercept=c(0, 0.25, 0.5, 0.75, 1), size=0.1, linetype='dashed') + 
   geom_bar(aes(x = value, 
                y = ape_threshold, fill=label), 
@@ -120,9 +127,35 @@ ggsave(.outputs[2],
        height=4.5, 
        units="in")  
 
+# Supplement version
+construction_epsilon_pal <- c(
+  '#c7e9c0','#a1d99b','#74c476','#41ab5d','#238b45','#006d2c',
+  '#c6dbef','#9ecae1','#6baed6','#4292c6','#2171b5','#08519c'
+)
+
+p_ape_thresh <- ggplot(ape_threshold_res_long) + 
+  geom_vline(xintercept=c(0, 0.25, 0.5, 0.75, 1), size=0.1, linetype='dashed') + 
+  geom_bar(aes(x = value, 
+               y = ape_threshold, fill=label), 
+           stat='identity', position="dodge") + 
+  scale_fill_manual(values=construction_epsilon_pal) + 
+  scale_x_continuous(limits=c(0, 1), labels=scales::percent) + 
+  facet_wrap(~variable) + 
+  labs(y = "Absolute Percent Error Threshold",
+       x = "Percentage below threshold",
+       fill=NULL) + 
+  theme_classic() + 
+  theme(legend.position = "right", #c(0.35, 0.4),
+        strip.background = element_blank(),
+        strip.text = element_text(face='bold'))
+
+ggsave(.outputs[3],
+       p_ape_thresh,
+       width=10,
+       height=8, 
+       units="in")  
 
 # Error by frequency
-
 od_counts <- unique(errors[, .(geoid_o, geoid_d, count)])
 od_counts <- od_counts[order(count)]
 od_counts[, id := .I]
@@ -207,9 +240,100 @@ p_panels <- cowplot::plot_grid(p_gdp_freq_error,
 p_freq_error <- cowplot::plot_grid(p_panels, combined_legend, 
                    ncol=2, rel_widths = c(0.8, 0.2))
 
-ggsave(.outputs[3],
+ggsave(.outputs[4],
        p_freq_error,
        width=7,
        height=7, 
        units="in")  
 
+# Plot of cms and GDP analytics for different sensitivities
+# Read in CMS and GDP analytics
+# Freq rank by highest sensitivity count
+# plot remaining counts to show systematic decreases
+
+sensitivity_errors_cms <- subset(errors, construction == "CMS" & 
+                                   epsilon == 10 & 
+                                   m == 4096 & 
+                                   k == 10000)
+sensitivity_errors_gdp <- subset(errors, construction == "GDP" & 
+                                   epsilon == 10 )
+
+sensitivity_errors_cms_rank <- subset(sensitivity_errors_cms, sensitivity==10)
+sensitivity_errors_cms_rank <- sensitivity_errors_cms_rank[order(-count)]
+sensitivity_errors_cms_rank[, id := .I]
+
+sensitivity_errors_gdp_rank <- subset(sensitivity_errors_gdp, sensitivity==10)
+sensitivity_errors_gdp_rank <- sensitivity_errors_gdp_rank[order(-count)]
+sensitivity_errors_gdp_rank[, id := .I]
+
+sensitivity_errors_cms[sensitivity_errors_cms_rank, on=c("geoid_o", "geoid_d"), id := id]
+sensitivity_errors_gdp[sensitivity_errors_gdp_rank, on=c("geoid_o", "geoid_d"), id := id]
+
+sensitivity_errors <- rbind(sensitivity_errors_cms,sensitivity_errors_gdp)
+sensitivity_errors[, sensitivity := factor(sensitivity, levels = c("1", "2", "5", "10"))]
+
+sensitivity_errors[, count_private := ifelse(count_private < 0, 0, count_private)]
+
+p_sensitivity <- ggplot(sensitivity_errors) + 
+  geom_point(aes(x = id, y = count_private, color=sensitivity), size=0.2) + 
+  scale_y_continuous(trans="pseudo_log", breaks=10^(0:5), labels = scales::comma) + 
+  scale_x_continuous(trans="pseudo_log") + 
+  facet_wrap(~construction) + 
+  theme_classic() + 
+  labs(color="Sensitivity",
+       y = "Number of trips (log scale)",
+       x = "Origin-destination pair (log scale)") + 
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank())
+
+ggsave(.outputs[5],
+       p_sensitivity,
+       width=10,
+       height=5, 
+       units="in") 
+
+sensitivity_errors_cms <- subset(errors, construction == "CMS" & 
+                                   epsilon == 10 & 
+                                   sensitivity == 10 & 
+                                   k == 10000)
+sensitivity_errors_cms[, m := factor(m, levels = c("64", "256", "1024", "4096"))]
+
+p_m_sensitivity <- ggplot(sensitivity_errors_cms) + 
+  geom_boxplot(aes(x = absolute_percentage_error, y=m, fill=m), 
+               alpha=1, outlier.shape = NA) + 
+  colorspace::scale_fill_discrete_qualitative("Warm") + 
+  scale_x_continuous(trans="pseudo_log", breaks=10^(0:5), labels = scales::comma) + 
+  labs(title='a',
+       subtitle="Sensitivity for values of m",
+       x = "Distribution of Absolute Percentage Error",
+       y = "Values of m") + 
+  theme_classic() + 
+  theme(legend.position = "none")
+
+sensitivity_errors_cms <- subset(errors, construction == "CMS" & 
+                                   epsilon == 10 & 
+                                   sensitivity == 10 & 
+                                   m == 4096 & 
+                                   k != 5)
+sensitivity_errors_cms[, k := factor(k, levels = as.character(c(1, 5, 10, 100, 1000, 10000)))]
+
+p_k_sensitivity <- ggplot(sensitivity_errors_cms) + 
+  geom_boxplot(aes(x = absolute_percentage_error, y=k, fill=k), 
+               alpha=1, outlier.shape = NA) + 
+  colorspace::scale_fill_discrete_qualitative("Cold") + 
+  scale_x_continuous(trans="pseudo_log", breaks=10^(0:5), labels = scales::comma) + 
+  labs(title='b',
+       subtitle="Sensitivity for values of k",
+       x = "Distribution of Absolute Percentage Error",
+       y = "Values of k") + 
+  theme_classic() + 
+  theme(legend.position = "none")
+
+
+p_m_k_sensitivity <- cowplot::plot_grid(p_m_sensitivity, p_k_sensitivity)
+
+ggsave(.outputs[6],
+       p_m_k_sensitivity,
+       width=10,
+       height=5, 
+       units="in") 

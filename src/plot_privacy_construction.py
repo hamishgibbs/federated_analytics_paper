@@ -5,15 +5,15 @@ from plotnine import *
 import pandas as pd
 import patchworklib as pw
 
-if len(sys.argv) > 1:
+if len(sys.argv) > 2:
     _args = sys.argv[1:]
 else:
     _args = [
-        "../output/analytics/base_analytics/departure-diffusion_exp/base_analytics_2019_01_01.csv",
-        "../output/analytics/k_anonymous/departure-diffusion_exp/k_anonymous_analytics_2019_01_01.csv",
-        "../output/analytics/gdp/departure-diffusion_exp/gdp_analytics_2019_01_01.csv",
-        "../output/analytics/naive_ldp/departure-diffusion_exp/naive_ldp_analytics_2019_01_01.csv",
-        "../output/analytics/cms/departure-diffusion_exp/cms_analytics_2019_01_01.csv",
+        "../output/analytics/base_analytics/departure-diffusion_exp/base_analytics_date_2019_01_01_d_2.csv",
+        "../output/analytics/k_anonymous/departure-diffusion_exp/k_anonymous_analytics_date_2019_01_01_d_2.csv",
+        "../output/analytics/gdp/departure-diffusion_exp/gdp_analytics_date_2019_01_01_d_2.csv",
+        "../output/analytics/naive_ldp/departure-diffusion_exp/naive_ldp_analytics_date_2019_01_01_d_2.csv",
+        "../output/analytics/cms/departure-diffusion_exp/cms_analytics_date_2019_01_01_d_2.csv",
         '../output/figs/k_anonymity_construction.png',
         '../output/figs/gdp_construction.png',
         '../output/figs/naive_ldp_construction.png',
@@ -41,6 +41,23 @@ base = pd.merge(base, k_anonymous, on=['geoid_o', 'geoid_d'], how='left',  valid
 base = pd.merge(base, gdp, on=['geoid_o', 'geoid_d'], how='left',  validate='one_to_one')
 base = pd.merge(base, ldp, on=['geoid_o', 'geoid_d'], how='left',  validate='one_to_one')
 base = pd.merge(base, cms, on=['geoid_o', 'geoid_d'], how='left',  validate='one_to_one')
+
+#%%
+# Compute pull values for manuscript
+top_percentage = 0.99
+threshold = base['id'].quantile(1 - top_percentage)
+base['id_top_thresh'] = base['id'] < threshold
+base['ape_count_gdp'] = np.abs(base['count'] - base['count_gdp']) / base['count']
+base['ape_count_ldp'] = np.abs(base['count'] - base['count_ldp']) / base['count']
+base['ape_count_cms'] = np.abs(base['count'] - base['count_cms']) / base['count']
+
+print(base.groupby('id_top_thresh')[['ape_count_gdp', 'ape_count_ldp', 'ape_count_cms']].mean() * 100)
+print("N top threshold:", base['id_top_thresh'].sum())
+print("N bottom threshold:", base.shape[0] - base['id_top_thresh'].sum())
+#%%
+k_anonymity_suppressed = base[pd.isna(base['count_k_anonymous'])]
+print(f"K-anonymity suppressed: {1-(k_anonymity_suppressed.shape[0] / base.shape[0]):%} OD pairs,  {1-(k_anonymity_suppressed['count'].sum() / base['count'].sum()):%} trips")
+
 # %%
 base_long = pd.melt(base, id_vars=['id', 'geoid_o', 'geoid_d', 'count'], value_vars=['count_k_anonymous', 'count_gdp', 'count_ldp', 'count_cms'], var_name='mechanism')
 # %%
@@ -55,8 +72,8 @@ pa = (ggplot(base_long.loc[base_long['mechanism'] == 'count_k_anonymous']) +
  scale_y_continuous(trans='pseudo_log', limits=[base_long['value'].min(skipna=True), base_long['value'].max(skipna=True)],
                     breaks = [0] + [10**x for x in range(0, int(end_exp)+2)]) + 
  scale_x_continuous(trans='pseudo_log') + 
- labs(x = "Origin-destination pair",
-      y = "Number of trips") + 
+ labs(x = "Origin-destination pair (log scale)",
+      y = "Number of trips (log scale)") + 
     theme_classic() + 
     theme(axis_text_x=element_blank(),
           axis_ticks_major_x=element_blank())
@@ -70,8 +87,8 @@ def plot_privacy(data, mechanism, ymin):
         scale_y_continuous(trans='pseudo_log', limits=[ymin, base_long['value'].max(skipna=True)],
                            breaks = [0] + [10**x for x in range(0, int(end_exp)+2)]) + 
         scale_x_continuous(trans='pseudo_log') + 
-        labs(x = "Origin-destination pair",
-            y = "Number of trips") + 
+        labs(x = "Origin-destination pair (log scale)",
+            y = "Number of trips (log scale)") + 
             theme_classic() + 
             theme(axis_text_x=element_blank(),
                 axis_ticks_major_x=element_blank())

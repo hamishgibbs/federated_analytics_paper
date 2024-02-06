@@ -104,10 +104,17 @@ ggsave(.outputs[2],
        units="in")  
 
 
-error_summary <- subset(check, metric != "DIC")[, .(min_value = round(min(value), 3), 
-          max_value = round(max(value), 3), 
-          mean_value = round(mean(value), 3),
-          median_value = round(median(value), 3)), by =c("metric", "division")]
+error_summary <- subset(check, metric != "DIC")[, .(min_value = round(min(value), 2), 
+          max_value = round(max(value), 2), 
+          mean_value = round(mean(value), 2),
+          median_value = round(median(value), 2)), by =c("metric", "division")]
+
+error_summary <- error_summary[, value_label := paste0(mean_value, " (", min_value, " - ", max_value, ")")]
+
+error_summary <- dcast(error_summary[, .(metric, division, value_label)], 
+      formula = division ~ metric,
+      value.var = "value_label")
+      
 
 fwrite(error_summary, .outputs[3])
 
