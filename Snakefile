@@ -44,12 +44,6 @@ DIVISIONS = [str(i) for i in [1, 2, 8, 9]]
 SPACE_K=list(range(5, 85, 10))
 TIME_T=list(range(1, 8))
 
-# For cluster execution - load conda for execution in environment
-# TODO Detect when NOT executing in cluster and disable
-shell.prefix("""
-module load python/miniconda3/4.10.3
-source $UCL_CONDA_PATH/etc/profile.d/conda.sh
-""")
 
 rule all:
     input:
