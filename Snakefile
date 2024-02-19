@@ -120,6 +120,8 @@ rule clean_pop:
         "data/population/co-est2019-alldata-utf8.csv"
     output:
         "data/population/pop_est2019_clean.csv"
+    conda:
+        'environment.yml'
     shell:
         """
         python src/clean_pop.py {input} {output}
