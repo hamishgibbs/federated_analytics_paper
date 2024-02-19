@@ -3,6 +3,9 @@ import polars as pl
 
 def main():
 
+    import sys
+    print(f"DEBUG: Python path: {sys.path}")
+
     pop = pl.read_csv(
         sys.argv[1],
         columns=['STATE', 'COUNTY', 'STNAME', 'CTYNAME', 'POPESTIMATE2019'],
