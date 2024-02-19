@@ -36,8 +36,9 @@ sensitivity_params = {
     },
 }
 
-FOCUS_DATE = "2019_01_01"
+FOCUS_DATE = "2019_04_08"
 FOCUS_DIVISION = "2"
+FOCUS_COLLECTIVE_MODEL = "departure-diffusion_exp"
 DATES = sensitivity_dates()
 DIVISIONS = [str(i) for i in [1, 2, 8, 9]]
 
@@ -190,8 +191,8 @@ rule fit_gravity:
         "data/geo/2019_us_county_distance_matrix.csv",
         "data/mobility/clean/daily_county2county_date_{date}_clean.csv"
     params:
-        n_burn=100,
-        n_samp=500,
+        n_burn=lambda wildcards: 1000 if wildcards.date == FOCUS_DATE and wildcards.division == FOCUS_DIVISION and wildcards.collective_type == FOCUS_COLLECTIVE_MODEL else 100,
+        n_samp=lambda wildcards: 5000 if wildcards.date == FOCUS_DATE and wildcards.division == FOCUS_DIVISION and wildcards.collective_type == FOCUS_COLLECTIVE_MODEL else 500,
         division=lambda wildcards: wildcards.division,
     output:
         "output/gravity/summary/{collective_type}_date_{date}_d_{division}_summary.csv",
