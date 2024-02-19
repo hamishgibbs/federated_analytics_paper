@@ -125,8 +125,6 @@ rule clean_pop:
         'environment.yml'
     shell:
         """
-        module load python/miniconda3/4.10.3
-        source $UCL_CONDA_PATH/etc/profile.d/conda.sh 
         python src/clean_pop.py {input} {output}
         """
 
