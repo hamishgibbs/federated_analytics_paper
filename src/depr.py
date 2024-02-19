@@ -141,6 +141,8 @@ if __name__ == '__main__':
         aggregate_function='first'
     ).fill_null(0)
 
+    # TODO: queue this up for parallel processing with cores provided by job
+
     all_trips = population_depr(
         pop_sample, 
         pij, 

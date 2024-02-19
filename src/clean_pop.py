@@ -1,11 +1,7 @@
 import sys
-import logging
 import polars as pl
 
 def main():
-
-    logging.basicConfig(filename='clean_pop.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-    logging.debug(sys.path)
 
     pop = pl.read_csv(
         sys.argv[1],
