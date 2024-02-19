@@ -13,13 +13,14 @@ if (interactive()) {
     "output/figs/counties_cluster_map.png",
     "output/figs/counties_cluster_map.png",
     "output/space_time_scale/spatial_cluster_geoids.csv",
-    "output/space_time_scale/spatial_cluster_mean_area.csv"
+    "output/space_time_scale/spatial_cluster_mean_area.csv",
+    "output/figs/spatial_cluster_example.png"
   )
 } else {
   .args <- commandArgs(trailingOnly = T)
 }
 
-.outputs <- tail(.args, 5)
+.outputs <- tail(.args, 6)
 
 counties <- st_read(.args[1])
 
@@ -144,3 +145,25 @@ mean_area[, value := NULL]
 
 fwrite(mean_area, .outputs[5])
 
+example_ks <- rev(c(ks[1], ks[as.integer(length(ks)/2)], ks[length(ks)]))
+
+example_combined_regions <- subset(combined_regions, k %in% example_ks)
+
+example_combined_regions$space_label <- factor(example_combined_regions$k,
+                                               levels = example_ks,
+                                               labels = rev(round(mean_area$mean_area[c(mean_area$k %in% example_ks)]/1000, 2)))
+
+p_spatial_aggregation_example <- ggplot(example_combined_regions) + 
+  geom_sf(aes(fill=as.character(cluster)), 
+          size=0) + 
+  facet_wrap(~space_label, nrow=2) + 
+  scale_fill_viridis_d(option = "D") + 
+  theme_void() + 
+  theme(legend.position="none",
+        strip.text = element_text(face="bold"))
+
+ggsave(.outputs[6],
+       p_spatial_aggregation_example,
+       width=8,
+       height=10, 
+       units="in") 

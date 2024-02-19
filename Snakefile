@@ -369,7 +369,8 @@ rule cluster_counties:
         "output/figs/counties_cluster_area.png",
         "output/figs/counties_cluster_map.png",
         "output/space_time_scale/spatial_cluster_geoids.csv",
-        "output/space_time_scale/spatial_cluster_mean_area.csv"
+        "output/space_time_scale/spatial_cluster_mean_area.csv",
+        "output/figs/spatial_cluster_example.png"
     shell:
         "Rscript {input} {output}"
 
@@ -426,8 +427,7 @@ rule plot_privacy_error_space_time:
         )
     output:
         "output/figs/spacetime_raster.png",
-        "output/figs/time_agg_freq_mape.png",
-        "output/figs/space_time_epsilon.png"
+        "output/figs/spacetime_epsilon.png"
     shell:
         "Rscript {input} {output}"
 

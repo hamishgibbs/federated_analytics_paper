@@ -52,6 +52,8 @@ ggsave(.outputs[1],
        height=4, 
        units="in")  
 
+# Comparison of GDP to k-anonymity for figure 3 text
+subset(errors, construction == "GDP" & epsilon == 10 & sensitivity == 10 & count < 10)[, .(mape = mean(absolute_percentage_error))]
 
 # Percentage of OD pairs below a certain error threshold
 # Percentage of true observations below a certain error threshold
