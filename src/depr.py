@@ -7,14 +7,13 @@ from alive_progress import alive_bar
 def calc_waiting_time(beta, tau):
     return powerlaw.Power_Law(0, parameters=[1.+ beta, 1.0/tau]).generate_random(1)[0]
 
-def preferential_exploration(current_location, pij):
+def preferential_exploration(current_location, pij_weights):
     """
     Preferential exploration based on gravity model
     """
-    weights = pij.filter(pij['geoid_o'] == current_location)[:, 1:].to_numpy()[0]
-    weights = weights / np.sum(weights)
+    weights = pij_weights.filter(pij_weights['geoid_o'] == current_location)[:, 1:].to_numpy()[0]
 
-    return np.random.choice(pij.columns[1:], size=1, p=weights)[0]
+    return np.random.choice(pij_weights.columns[1:], size=1, p=weights)[0]
 
 def preferential_return(trips):
     """
@@ -27,7 +26,7 @@ def preferential_return(trips):
 
     return np.random.choice(np.unique(trips[:, 1]), size=1, p=weights)[0]
 
-def choose_next_location(trips, pij, rho, gamma):
+def choose_next_location(trips, pij_weights, rho, gamma):
     """
     Choose next location based on whether to explore or return
     """
@@ -38,11 +37,11 @@ def choose_next_location(trips, pij, rho, gamma):
     p_new = np.random.uniform(0, 1)
     if (p_new <= rho * np.power(n_visited_locations, -gamma)) \
         or (n_visited_locations == 1):
-        return preferential_exploration(current_location, pij)
+        return preferential_exploration(current_location, pij_weights)
     else:
         return preferential_return(trips)
 
-def depr(uid, start_location, pij, rho, gamma, beta, tau, duration):
+def depr(uid, start_location, pij_weights, rho, gamma, beta, tau, duration):
     """
     Simulate a single individual based on the DEPR model
     """
@@ -52,7 +51,7 @@ def depr(uid, start_location, pij, rho, gamma, beta, tau, duration):
     while total_time < duration:
         time_to_next_visit = calc_waiting_time(beta, tau)
 
-        next_location = choose_next_location(trips, pij, rho, gamma)
+        next_location = choose_next_location(trips, pij_weights, rho, gamma)
 
         total_time += time_to_next_visit
 
@@ -67,25 +66,40 @@ def depr(uid, start_location, pij, rho, gamma, beta, tau, duration):
     dtype = [('uid', 'i4'), ('time', 'f4'), ('geoid', 'U10')]
     return np.array([tuple(row) for row in trips], dtype=dtype)
 
-def population_depr(pop_sample, pij, rho, gamma, beta, tau, duration):
+def population_depr(pop_sample, pij_weights, rho, gamma, beta, tau, duration):
     """
     Simulate a population of individuals based on the DEPR model
     """
 
-    # TODO: Could pre-allocate and clean up memory after use if needed
+    # TODO: pre-allocate and clean up memory after use if needed
+    n_uids = pop_sample['pop_sample'].sum()
+    
+    # Estimating that each individual will make 10 trips 
+    # NOTE: This is an optimization dependent on duration and waiting time distribution
+    max_trips = n_uids * 10 
 
-    all_trips = np.array([], dtype=[('uid', 'i4'), ('time', 'f4'), ('geoid', 'U10')])
+    all_trips = np.zeros(max_trips, dtype=[('uid', 'i4'), ('time', 'f4'), ('geoid', 'U10')])
 
     uid = 0
+    trip_counter = 0
 
-    with alive_bar(pop_sample['pop_sample'].sum()) as bar:
+    with alive_bar(n_uids) as bar:
         for row in pop_sample.to_dicts():
             if row['pop_sample']:
                 for _ in range(row['pop_sample']):
-                    trips = depr(uid, row['GEOID'], pij, rho, gamma, beta, tau, duration)
-                    all_trips = np.hstack((all_trips, trips))
+                    trips = depr(uid, row['GEOID'], pij_weights, rho, gamma, beta, tau, duration)
+                    num_trips = len(trips)
+
+                    if trip_counter + num_trips > max_trips:
+                        raise ValueError("Exceeded pre-allocated trip storage.")
+                    
+                    all_trips[trip_counter:trip_counter + num_trips] = trips
+
+                    trip_counter += num_trips
                     uid += 1
                     bar()
+
+    all_trips = all_trips[:trip_counter]
     
     return pl.DataFrame(all_trips)
 
@@ -140,12 +154,14 @@ if __name__ == '__main__':
         values="value",
         aggregate_function='first'
     ).fill_null(0)
-
+    pij_weights = pij[:, 1:] / pij[:, 1:].sum(axis=1)
+    pij_weights = pij_weights.insert_column(0, pij['geoid_o'])
+    
     # TODO: queue this up for parallel processing with cores provided by job
 
     all_trips = population_depr(
         pop_sample, 
-        pij, 
+        pij_weights, 
         RHO, 
         GAMMA, 
         BETA, 
