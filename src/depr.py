@@ -11,9 +11,11 @@ def preferential_exploration(current_location, pij_weights):
     """
     Preferential exploration based on gravity model
     """
-    weights = pij_weights.filter(pij_weights['geoid_o'] == current_location)[:, 1:].to_numpy()[0]
+    weights = np.array(pij_weights[current_location])
 
-    return np.random.choice(pij_weights.columns[1:], size=1, p=weights)[0]
+    # Choosing destination (column) based on weights. 
+    # Requires that pij_weights.keys() values correspond to the ordering of weights
+    return np.random.choice(list(pij_weights.keys()), size=1, p=weights)[0]
 
 def preferential_return(trips):
     """
@@ -71,11 +73,11 @@ def population_depr(pop_sample, pij_weights, rho, gamma, beta, tau, duration):
     Simulate a population of individuals based on the DEPR model
     """
 
-    # TODO: pre-allocate and clean up memory after use if needed
     n_uids = pop_sample['pop_sample'].sum()
     
+    # NOTE: Pre-allocating memory to speed up modelling. 
     # Estimating that each individual will make 10 trips 
-    # NOTE: This is an optimization dependent on duration and waiting time distribution
+    # This is an optimization dependent on duration and waiting time distribution
     max_trips = n_uids * 10 
 
     all_trips = np.zeros(max_trips, dtype=[('uid', 'i4'), ('time', 'f4'), ('geoid', 'U10')])
@@ -114,6 +116,30 @@ def sample_population(pop, pop_sample_rate):
 
     return pop
 
+def build_pij_weights(pij: pl.DataFrame) -> dict:
+    """
+    Build a dictionary of weights for each origin location
+    """
+    pij = pij.sort(["geoid_o", "geoid_d"])
+
+    pij = pij.pivot(
+        index="geoid_o", 
+        columns="geoid_d", 
+        values="value",
+        aggregate_function='first'
+    ).fill_null(0)
+    pij_weights = pij[:, 1:] / pij[:, 1:].sum(axis=1)
+    pij_weights = pij_weights.insert_column(0, pij['geoid_o'])
+
+    pij_weights_dict = {}
+
+    for row in pij_weights.to_dicts():
+        key = row['geoid_o']
+        values = [row[col] for col in pij_weights.columns[1:]]
+        pij_weights_dict[key] = values
+
+    return pij_weights_dict
+
 if __name__ == '__main__':
 
     POP_SAMPLE_RATE = 0.001
@@ -140,22 +166,11 @@ if __name__ == '__main__':
     states = pij['geoid_o'].str.slice(0, 2).unique().to_list()
     pop = pop.filter(pop['GEOID'].str.slice(0, 2).is_in(states))
 
-    # TODO: For now, allocate individuals equally
-    # In future, may be more realistic to sample based on population (more than population weighted)
+    # TODO: Allocate individuals equally accorting to census population
     pop_sample = sample_population(pop, POP_SAMPLE_RATE)
-
     print(f"Simulating {pop_sample['pop_sample'].sum():,} individuals")
 
-    pij = pij.sort(["geoid_o", "geoid_d"])
-
-    pij = pij.pivot(
-        index="geoid_o", 
-        columns="geoid_d", 
-        values="value",
-        aggregate_function='first'
-    ).fill_null(0)
-    pij_weights = pij[:, 1:] / pij[:, 1:].sum(axis=1)
-    pij_weights = pij_weights.insert_column(0, pij['geoid_o'])
+    pij_weights = build_pij_weights(pij)
     
     # TODO: queue this up for parallel processing with cores provided by job
 
