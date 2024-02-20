@@ -1,6 +1,6 @@
 import click
 import polars as pl
-from privacy import bounded_sum_gdp, sum_ldp, freq_cms
+from privacy import bounded_sum_gdp, freq_cms
 
 @click.command()
 @click.option('--infn')
@@ -26,8 +26,8 @@ def aggregate_with_privacy(
     )
 
     depr = depr.sort(["uid", "time"]) \
-       .groupby("uid") \
-       .apply(lambda group: group.with_columns(group["geoid"].shift(-1).alias("geoid_d"))) \
+       .group_by("uid") \
+       .map_groups(lambda group: group.with_columns(group["geoid"].shift(-1).alias("geoid_d"))) \
        .rename({'geoid': 'geoid_o'}) \
        .filter(pl.col('geoid_d').is_not_null())
     
@@ -43,12 +43,6 @@ def aggregate_with_privacy(
             sensitivity=int(sensitivity), 
             epsilon=float(epsilon)
         )
-    elif construction == "naive_LDP":
-         res = sum_ldp(domain,
-                  depr, 
-                  ['geoid_o', 'geoid_d'], 
-                  sensitivity=int(sensitivity), 
-                  epsilon=float(epsilon))
     elif construction == "CMS":
          k = int(k)
          m = int(m)
