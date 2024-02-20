@@ -29,11 +29,7 @@ sensitivity_params = {
         "m": [2**i for i in range(6, 14, 2)],
         "epsilon": epsilons,
         "sensitivity": sensitivities
-    },
-    "naive_LDP": {
-        "epsilon": epsilons,
-        "sensitivity": 10
-    },
+    }
 }
 
 FOCUS_DATE = "2019_04_08"
@@ -307,14 +303,6 @@ rule all_privacy_sensitivity:
         date=wildcards.date,
         division=wildcards.division),
         lambda wildcards: expand("output/analytics/sensitivity/{construction}/{construction}_analytics_s_{sensitivity}_e_{epsilon}_k_{k}_m_{m}_date_{date}_d_{division}.csv", 
-        construction="naive_LDP",
-        sensitivity=sensitivity_params["naive_LDP"]["sensitivity"],
-        epsilon=sensitivity_params["naive_LDP"]["epsilon"],
-        k="NA",
-        m="NA",
-        date=wildcards.date,
-        division=wildcards.division),
-        lambda wildcards: expand("output/analytics/sensitivity/{construction}/{construction}_analytics_s_{sensitivity}_e_{epsilon}_k_{k}_m_{m}_date_{date}_d_{division}.csv", 
         construction="CMS",
         sensitivity=sensitivity_params["CMS"]["sensitivity"],
         epsilon=sensitivity_params["CMS"]["epsilon"],
@@ -330,7 +318,7 @@ rule all_privacy_sensitivity:
 
 rule apply_privacy:
     input:
-        "src/privacy_sensitivity.py",
+        "src/apply_privacy.py",
         "output/depr/departure-diffusion_exp/simulated_depr_date_{date}_d_{division}.csv"
     params:
         construction=lambda wildcards: wildcards.construction,
@@ -396,7 +384,7 @@ rule agg_depr_space_time:
 
 rule apply_privacy_space_time:
     input:
-        "src/privacy_sensitivity.py",
+        "src/apply_privacy.py",
         "output/space_time_scale/agg/simulated_depr_space_{space}_time_{t}.csv"
     params:
         construction=lambda wildcards: wildcards.construction,
