@@ -144,7 +144,7 @@ def build_pij_weights(pij: pl.DataFrame) -> dict:
 
 if __name__ == '__main__':
 
-    POP_SAMPLE_RATE = 0.001
+    POP_SAMPLE_RATE = 0.005
     RHO = 0.6
     GAMMA = 0.21
     BETA = 0.8

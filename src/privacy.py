@@ -3,6 +3,8 @@ import polars as pl
 import numpy as np
 from pure_ldp.frequency_oracles.apple_cms import CMSClient, CMSServer
 from alive_progress import alive_bar
+from opendp.mod import enable_features
+enable_features("contrib")
 
 def k_anonymous_sum(data, group, T):
     
@@ -25,6 +27,9 @@ def bounded_sum_gdp(data, group, sensitivity, epsilon):
     
     data = (data.groupby(group)
             .agg([pl.col('count').sum().alias('count')]))
+    
+    print(data['count'].max())
+    raise Exception
 
     return data.with_columns(
         pl.col('count').apply(lambda x: add_laplace_noise(x, epsilon, sensitivity)).alias('count')
