@@ -28,9 +28,6 @@ def bounded_sum_gdp(data, group, sensitivity, epsilon):
     data = (data.groupby(group)
             .agg([pl.col('count').sum().alias('count')]))
     
-    print(data['count'].max())
-    raise Exception
-
     return data.with_columns(
         pl.col('count').apply(lambda x: add_laplace_noise(x, epsilon, sensitivity)).alias('count')
     )
