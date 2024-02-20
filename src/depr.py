@@ -130,7 +130,7 @@ def build_pij_weights(pij: pl.DataFrame) -> dict:
         values="value",
         aggregate_function='first'
     ).fill_null(0)
-    pij_weights = pij[:, 1:] / pij[:, 1:].sum(axis=1)
+    pij_weights = pij[:, 1:] / pij[:, 1:].sum_horizontal()
     pij_weights = pij_weights.insert_column(0, pij['geoid_o'])
 
     pij_weights_dict = {}
