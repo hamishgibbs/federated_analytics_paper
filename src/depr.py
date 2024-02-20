@@ -43,7 +43,7 @@ def choose_next_location(trips, pij_weights, rho, gamma):
     else:
         return preferential_return(trips)
 
-def depr(uid, start_location, pij_weights, rho, gamma, beta, tau, duration):
+def depr(uid, start_location, pij_weights, rho, gamma, beta, tau, duration, all_trips, trip_counter):
     """
     Simulate a single individual based on the DEPR model
     """
@@ -52,21 +52,16 @@ def depr(uid, start_location, pij_weights, rho, gamma, beta, tau, duration):
     trips = np.array([(0, start_location)])
     while total_time < duration:
         time_to_next_visit = calc_waiting_time(beta, tau)
-
         next_location = choose_next_location(trips, pij_weights, rho, gamma)
-
         total_time += time_to_next_visit
 
-        trips = np.vstack((trips, (total_time, next_location)))
+        if total_time < duration: 
+            all_trips[trip_counter] = (uid, total_time, next_location)
+            trip_counter += 1
+        else:
+            break
 
-    trips = np.hstack((np.full((trips.shape[0], 1), uid), trips))
-    
-    # drop last row as it is over duration
-    trips = trips[:-1, :]
-
-    # convert to structured array
-    dtype = [('uid', 'i4'), ('time', 'f4'), ('geoid', 'U10')]
-    return np.array([tuple(row) for row in trips], dtype=dtype)
+    return trip_counter
 
 def population_depr(pop_sample, pij_weights, rho, gamma, beta, tau, duration):
     """
@@ -75,7 +70,7 @@ def population_depr(pop_sample, pij_weights, rho, gamma, beta, tau, duration):
 
     n_uids = pop_sample['pop_sample'].sum()
     
-    # NOTE: Pre-allocating memory to speed up modelling. 
+    # NOTE: Pre-allocating memory to speed up simulation. 
     # Estimating that each individual will make 10 trips 
     # This is an optimization dependent on duration and waiting time distribution
     max_trips = n_uids * 10 
@@ -89,19 +84,15 @@ def population_depr(pop_sample, pij_weights, rho, gamma, beta, tau, duration):
         for row in pop_sample.to_dicts():
             if row['pop_sample']:
                 for _ in range(row['pop_sample']):
-                    trips = depr(uid, row['GEOID'], pij_weights, rho, gamma, beta, tau, duration)
-                    num_trips = len(trips)
-
-                    if trip_counter + num_trips > max_trips:
+                    trip_counter = depr(uid, row['GEOID'], pij_weights, rho, gamma, beta, tau, duration, all_trips, trip_counter)
+                    
+                    if trip_counter > max_trips:
                         raise ValueError("Exceeded pre-allocated trip storage.")
                     
-                    all_trips[trip_counter:trip_counter + num_trips] = trips
-
-                    trip_counter += num_trips
                     uid += 1
                     bar()
-
-    all_trips = all_trips[:trip_counter]
+    
+    all_trips = all_trips[:trip_counter] # trim unused memory
     
     return pl.DataFrame(all_trips)
 
@@ -115,6 +106,7 @@ def sample_population(pop, pop_sample_rate):
     pop = pop.drop('POPESTIMATE2019')
 
     return pop
+
 
 def build_pij_weights(pij: pl.DataFrame) -> dict:
     """
@@ -166,7 +158,6 @@ if __name__ == '__main__':
     states = pij['geoid_o'].str.slice(0, 2).unique().to_list()
     pop = pop.filter(pop['GEOID'].str.slice(0, 2).is_in(states))
 
-    # TODO: Allocate individuals equally accorting to census population
     pop_sample = sample_population(pop, POP_SAMPLE_RATE)
     print(f"Simulating {pop_sample['pop_sample'].sum():,} individuals")
 
