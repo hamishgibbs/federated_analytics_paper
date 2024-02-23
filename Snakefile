@@ -16,18 +16,22 @@ collective_types = [
     "departure-diffusion_exp"
     ]
 
-epsilons = [0.1, 0.5, 1, 5, 10, 15]
 sensitivities = [1, 2, 5, 10]
+
+# These values are based on 
+# prior information about division 2
+FOCUS_SAMPLE_SIZE = 205_614 # Number of simulated individuals
+FOCUS_OD_DOMAIN_SIZE = 23_409 # Number of OD pairs
 
 sensitivity_params = {
     "GDP": {
-        "epsilon": epsilons,
+        "epsilon": [0.1, 0.5, 1, 5, 10, 15],
         "sensitivity": sensitivities
     },
     "CMS": {
-        "k": [1, 5, 10, 100, 1000, 10000],
-        "m": [2**i for i in range(6, 14, 2)],
-        "epsilon": epsilons,
+        "k": [int(x * FOCUS_SAMPLE_SIZE) for x in [0.1, 0.5, 1]], # defines the number of hashes clients can select
+        "m": [int(x * FOCUS_OD_DOMAIN_SIZE) for x in [0.1, 0.5, 1, 2]], # defines the size of the hashes
+        "epsilon": [1, 5, 10, 15], # low values produce severe noise 
         "sensitivity": sensitivities
     }
 }
