@@ -29,8 +29,8 @@ sensitivity_params = {
         "sensitivity": sensitivities
     },
     "CMS": {
-        "k": [int(x * FOCUS_SAMPLE_SIZE) for x in [0.1, 0.5, 1]], # defines the number of hashes clients can select
-        "m": [int(x * FOCUS_OD_DOMAIN_SIZE) for x in [0.1, 0.5, 1, 2]], # defines the size of the hashes
+        "k": [int(x * FOCUS_SAMPLE_SIZE) for x in [0.0001, 0.001, 0.01, 0.1]], # defines the number of hashes clients can select
+        "m": [int(x * FOCUS_OD_DOMAIN_SIZE) for x in [0.005, 0.1, 0.5, 1, 2]], # defines the size of the hashes
         "epsilon": [1, 5, 10, 15], # low values produce severe noise 
         "sensitivity": sensitivities
     }
