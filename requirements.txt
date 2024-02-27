@@ -7,7 +7,6 @@ alive-progress
 snakemake
 click
 scikit-learn
-patchworklib
 seaborn
 matplotlib
 geopandas
