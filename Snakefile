@@ -427,5 +427,5 @@ rule plot_privacy_error_space_time:
 
 rule download_output: # Download compressed output directory (execute locally)
     shell:
-        f"scp -r {os.getenv('REMOTE_USER')}@{os.getenv('REMOTE_HOST')}:{os.getenv('REMOTE_OUTPUT_DIR')}/output output"
+        f"scp -r {os.getenv('REMOTE_USER')}@{os.getenv('REMOTE_HOST')}:{os.getenv('REMOTE_OUTPUT_DIR')}/output {os.getenv('LOCAL_OUTPUT_DIR')}"
     
