@@ -269,7 +269,6 @@ rule compare_privacy_construction:
     output:
         f"output/analytics/k_anonymous/departure-diffusion_exp/k_anonymous_analytics_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv",
         f"output/analytics/gdp/departure-diffusion_exp/gdp_analytics_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv",
-        f"output/analytics/naive_ldp/departure-diffusion_exp/naive_ldp_analytics_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv",
         f"output/analytics/cms/departure-diffusion_exp/cms_analytics_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv"
     shell:
         """
@@ -282,7 +281,6 @@ rule plot_privacy_construction:
         f"output/analytics/base_analytics/departure-diffusion_exp/base_analytics_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv",
         f"output/analytics/k_anonymous/departure-diffusion_exp/k_anonymous_analytics_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv",
         f"output/analytics/gdp/departure-diffusion_exp/gdp_analytics_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv",
-        f"output/analytics/naive_ldp/departure-diffusion_exp/naive_ldp_analytics_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv",
         f"output/analytics/cms/departure-diffusion_exp/cms_analytics_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv"
     output:
         'output/figs/k_anonymity_construction.png',
@@ -357,7 +355,7 @@ rule cluster_counties:
     input:
         "src/cluster_counties.R",
         "data/geo/tl_2019_us_county/tl_2019_us_county.shp",
-        "output/depr/departure-diffusion_exp/simulated_depr_date_2019_01_01_d_2.csv"
+        "output/depr/departure-diffusion_exp/simulated_depr_date_2019_2019_04_08_d_2.csv"
     output:
         "output/figs/counties_cluster_dendro.png",
         "output/figs/counties_cluster_area.png",
