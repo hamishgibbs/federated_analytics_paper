@@ -53,7 +53,6 @@ rule all:
         "output/figs/spatiotemporal_r2_by_date_type.png",
         expand("output/sensitivity/collective_model_sensitivity/collective_error_comparison_date_{date}_d_{division}.png", date=FOCUS_DATE, division=FOCUS_DIVISION),
         "output/figs/construction_error.png",
-        "output/figs/construction_epsilon_mape.png",
         "output/figs/spacetime_raster.png"
 
 rule current_rulegraph: 
