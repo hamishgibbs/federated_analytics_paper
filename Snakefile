@@ -330,7 +330,7 @@ rule cluster_counties:
     input:
         "src/cluster_counties.R",
         "data/geo/tl_2019_us_county/tl_2019_us_county.shp",
-        "output/depr/departure-diffusion_exp/simulated_depr_date_2019_04_08_d_2.csv"
+        f"output/depr/departure-diffusion_exp/simulated_depr_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv"
     output:
         "output/figs/counties_cluster_dendro.png",
         "output/figs/counties_cluster_area.png",
