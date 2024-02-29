@@ -70,8 +70,6 @@ p <- ggplot(pij) +
         axis.ticks.x = element_blank(),
         text = element_text(size=15))
 
-p
-
 ggsave(.outputs[1],
        p,
        width=8,

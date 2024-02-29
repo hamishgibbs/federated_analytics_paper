@@ -42,9 +42,8 @@ FOCUS_COLLECTIVE_MODEL = "departure-diffusion_exp"
 DATES = sensitivity_dates()
 DIVISIONS = [str(i) for i in [1, 2, 8, 9]]
 
-SPACE_K=list(range(5, 85, 10))
+SPACE_K=list(range(15, 150, 10))
 TIME_T=list(range(1, 8))
-
 
 rule all:
     input:
@@ -388,9 +387,9 @@ rule plot_privacy_error_space_time:
         expand("output/space_time_scale/analytics/{construction}/{construction}_analytics_s_{sensitivity}_e_{epsilon}_k_{k}_m_{m}_space_{space}_time_{t}.csv", 
             construction=["CMS"],
             sensitivity=[1000],
-            epsilon=[1, 5, 10, 15],
-            k=[10_000],
-            m=[4096],
+            epsilon=[5],
+            k=sensitivity_params["CMS"]["k"][-1],
+            m=sensitivity_params["CMS"]["m"][-1],
             space=SPACE_K,
             t=TIME_T
         )
@@ -405,7 +404,3 @@ rule plot_privacy_error_space_time:
 rule download_output: # Download compressed output directory (execute locally)
     shell:
         f"scp -r {os.getenv('REMOTE_USER')}@{os.getenv('REMOTE_HOST')}:{os.getenv('REMOTE_OUTPUT_DIR')}/output {os.getenv('LOCAL_OUTPUT_DIR')}"
-    
-rule download_metadata: # Download compressed output directory (execute locally)
-    shell:
-        f"scp -r {os.getenv('REMOTE_USER')}@{os.getenv('REMOTE_HOST')}:{os.getenv('REMOTE_OUTPUT_DIR')}/.snakemake {os.getenv('LOCAL_OUTPUT_DIR')}"
