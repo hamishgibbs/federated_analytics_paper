@@ -26,7 +26,7 @@ counties <- st_read(.args[1])
 
 depr <- fread(.args[2])
 
-counties <- subset(counties, GEOID %in% unique(c(depr$geoid_o, depr$geoid_d)))
+counties <- subset(counties, GEOID %in% unique(depr$geoid))
 counties <- st_simplify(counties, dTolerance = 100, preserveTopology = T)
 
 counties_cent <- st_centroid(counties)
