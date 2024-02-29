@@ -74,8 +74,8 @@ p
 
 ggsave(.outputs[1],
        p,
-       width=12,
-       height=14, 
+       width=8,
+       height=10, 
        units="in")  
 
 metrics <- metrics[order(metric, model)]
