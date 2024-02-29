@@ -63,8 +63,6 @@ def freq_cms(domain, data, m, k, sensitivity, epsilon):
 
 def main():
 
-    _outputs = sys.argv[-4:]
-
     depr = pl.read_csv(
         sys.argv[1],
         columns=['uid', 'time', 'geoid'],
@@ -84,21 +82,7 @@ def main():
 
     k_anonymous = k_anonymous_sum(depr, ['geoid_o', 'geoid_d'], T=10)
 
-    gdp = bounded_sum_gdp(depr, ['geoid_o', 'geoid_d'], 
-                          sensitivity=10, 
-                          epsilon=10)
-    
-    cms = freq_cms(domain, 
-                   depr, 
-                   m=1024, 
-                   k=10, 
-                   sensitivity=10,
-                   epsilon=10)
-
-    k_anonymous.write_csv(_outputs[0])
-    gdp.write_csv(_outputs[1])
-    cms.write_csv(_outputs[3])
-    
+    k_anonymous.write_csv(sys.argv[-1])    
 
 if __name__ == '__main__':
     main()

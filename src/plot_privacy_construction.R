@@ -92,6 +92,7 @@ k_anon[, privacy := factor(
   levels=c("count_private"),
   labels=c("Privatised value"))]
 
+
 p <- ggplot(subset(errors_comparison_long, !is.na(value))) + 
   geom_point(aes(x = id, y = pmax(value, 0), color=privacy),
              size=0.1) + 

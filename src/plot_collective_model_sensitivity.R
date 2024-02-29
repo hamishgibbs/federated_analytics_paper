@@ -5,14 +5,14 @@ suppressPackageStartupMessages({
 
 if (interactive()) {
   .args <- c(
-    "data/mobility/clean/daily_county2county_date_2019_01_01_clean.csv",
-    "output/gravity/check/gravity_basic_date_2019_01_01_d_2_check.csv",
-    "output/gravity/check/gravity_power_date_2019_01_01_d_2_check.csv",
-    "output/gravity/pij/gravity_basic_date_2019_01_01_d_2_pij.csv",
-    "output/gravity/pij/gravity_power_date_2019_01_01_d_2_pij.csv",
-    "output/sensitivity/collective_model_sensitivity/collective_error_comparison_date_2019_01_01_d_2.png",
-    "output/sensitivity/collective_model_sensitivity/collective_model_metrics_date_2019_01_01_d_2.png",
-    "output/sensitivity/collective_model_sensitivity/collective_model_metrics_date_2019_01_01_d_2.csv"
+    "data/mobility/clean/daily_county2county_date_2019_04_08_clean.csv",
+    "output/gravity/check/gravity_basic_date_2019_04_08_d_2_check.csv",
+    "output/gravity/check/gravity_power_date_2019_04_08_d_2_check.csv",
+    "output/gravity/pij/gravity_basic_date_2019_04_08_d_2_pij.csv",
+    "output/gravity/pij/gravity_power_date_2019_04_08_d_2_pij.csv",
+    "output/sensitivity/collective_model_sensitivity/collective_error_comparison_date_2019_04_08_d_2.png",
+    "output/sensitivity/collective_model_sensitivity/collective_model_metrics_date_2019_04_08_d_2.png",
+    "output/sensitivity/collective_model_sensitivity/collective_model_metrics_date_2019_04_08_d_2.csv"
   )
   N_COLLECTIVE_MODELS <- 2
 } else {
@@ -36,10 +36,10 @@ read_model <- function(fn, stub, colClasses){
 }
 
 metrics <- do.call(rbind, 
-                   lapply(metrics_fn, read_model, stub="_date_2019_01_01_d_2_check.csv",
+                   lapply(metrics_fn, read_model, stub="_date_2019_04_08_d_2_check.csv",
                           colClasses=c()))
 pij <- do.call(rbind, 
-               lapply(pij_fn, read_model, stub="_date_2019_01_01_d_2_pij.csv",
+               lapply(pij_fn, read_model, stub="_date_2019_04_08_d_2_pij.csv",
                       colClasses=c("geoid_o"="character", "geoid_d"="character")))
 
 empirical[, obs := pop_flows / sum(pop_flows)]

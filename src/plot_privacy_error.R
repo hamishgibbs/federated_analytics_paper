@@ -101,7 +101,7 @@ p_error_freq <- ggplot(errors_gdp_cms_comparison_high_freq) +
               color="black", fill="transparent", size=0.4) + 
   geom_ribbon(aes(x = id, ymin = q50_lower/count, ymax=q50_upper/count),
               color="black", fill="transparent", size=0.4, linetype="dashed") + 
-  geom_hline(aes(yintercept=0.1), linetype="dashed", size=0.4) + 
+  geom_hline(aes(yintercept=0.1), linetype="dashed", size=0.4, color="red") + 
   scale_y_continuous(trans="log10",
                      breaks=c(0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000)) + 
   scale_x_continuous(breaks=c(0, max(errors_gdp_cms_comparison_high_freq$id)),
@@ -137,27 +137,34 @@ sd_model <- lm(error_sd~epsilon+sensitivity+m+k, data=error_cms_sd)
 
 plot(sd_model)
 
+res_lmg_boot <- relaimpo::boot.relimp(sd_model, type="lmg", rela=T, R=1000)
+res_lmg_boot_ci <- relaimpo::booteval.relimp(res_lmg_boot, bty = "perc", 
+                                             level = 0.95)
 res <- relaimpo::calc.relimp(sd_model, type="lmg", rela=T)
-res_lmg <- res$lmg
-res_lmg <- data.table(param=names(res_lmg),
-           lmg=res_lmg)
+res_lmg <- data.table(param=res_lmg_boot@namen[2:5],
+           lmg=res$lmg,
+           lower=as.numeric(res_boot_ci@lmg.lower),
+           upper=as.numeric(res_boot_ci@lmg.upper))
+
 res_lmg[, param := factor(param, 
                           levels=rev(c("epsilon", "sensitivity", "m", "k")),
                           labels=rev(c("ε", "s", "m", "k")))]
 
-sensitivity_pal <- c('#ffe808', '#ffce00', '#ff9a00', '#ff5a00')
+sensitivity_pal <- c('blue', '#ffe808', '#ffce00', '#ff9a00', '#ff5a00')
 m_pal <- c('#48cae4', '#00b4d8', '#0077b6', '#023e8a','#03045e')
 k_pal <- c('#e0aaff', '#c77dff', '#7b2cbf', '#3c096c')
 
 # Color this by parameter (first color of each param pal?)
 p_param_r2 <- ggplot(res_lmg) + 
-  geom_point(aes(y = param, x = lmg, color=param), stat="identity",
-           alpha=0.8, size=3) + 
+  geom_errorbar(aes(y = param, xmin=lower, xmax=upper,
+                    color=param), width=0.2) + 
+  geom_point(aes(y = param, x = lmg, color=param), stat="identity", 
+             size=1) + 
   geom_text(aes(y = param, x = lmg+0.12, 
-                label=scales::label_number()(round(lmg, 4))),
+                label=scales::percent(lmg)),
             size=3.5) + 
   geom_vline(xintercept=1, linetype="dashed", size=0.2) + 
-  scale_color_manual(values=rev(c('#95d5b2', sensitivity_pal[1], m_pal[1], k_pal[1]))) + 
+  scale_color_manual(values=rev(c('#95d5b2', sensitivity_pal[2], m_pal[1], k_pal[1]))) + 
   labs(title="a",
        x = "Parameter",
        y = expression(paste("Partial ", R^2, " for error SD"))) + 
@@ -169,14 +176,24 @@ p_param_r2 <- ggplot(res_lmg) +
 # Plot of decreasing counts for each sensitivity
 errors_cms_s <- subset(errors_cms, epsilon==10 & m == 2340 & k == 2056)
 errors_cms_s[od_counts, on=c("geoid_o", "geoid_d"), id := id]
+errors_cms_s <- errors_cms_s[, .(id, count_private, sensitivity)]
+colnames(errors_cms_s) <- c('id', 'value', 'sensitivity')
 
-s_levels <- sort(unique(errors_cms_s$sensitivity))
+errors_cms_true <- od_counts[, .(id, count)]
+errors_cms_true[, sensitivity := "True"]
+colnames(errors_cms_true) <- c('id', 'value', 'sensitivity')
+
+errors_cms_s <- rbind(errors_cms_s, errors_cms_true)
+
+s_levels <- c("True", "1", "2", "5", "10")
+s_labels <- c("True distribution", paste(c(1, 2, 5, 10), c("OD Pair", rep("OD Pairs", 3))))
+      
 errors_cms_s[, sensitivity := factor(sensitivity, 
          levels = s_levels,
-         labels = paste(s_levels, c("OD Pair", rep("OD Pairs", 3))))]
+         labels = s_labels)]
 
 p_param_s <- ggplot(errors_cms_s) + 
-  geom_point(aes(x = id, y = pmax(count_private, 0), color=sensitivity),
+  geom_point(aes(x = id, y = pmax(value, 0), color=sensitivity),
              size=0.1) + 
   scale_y_continuous(trans="log10") + 
   scale_x_continuous(trans="log10",
@@ -226,10 +243,11 @@ p_param_k <- ggplot(errors_cms_k) +
   geom_hline(yintercept=0, size=0.2) + 
   scale_color_manual(values=k_pal) + 
   theme_classic() + 
-  theme(legend.position = c(0.2, 0.6)) + 
+  theme(legend.position = c(0.2, 0.6),
+        legend.title = element_text(face="italic")) + 
   xlim(-1000, 400) + 
   labs(title="d",
-       color="k value",
+       color="k",
        x="Error",
        y="Density")
 

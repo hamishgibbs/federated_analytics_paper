@@ -30,7 +30,7 @@ sensitivity_params = {
     },
     "CMS": {
         "k": [int(x * FOCUS_SAMPLE_SIZE) for x in [0.0001, 0.001, 0.01, 0.1]], # defines the number of hashes clients can select
-        "m": [int(x * FOCUS_OD_DOMAIN_SIZE) for x in [0.005, 0.1, 0.5, 1, 2]], # defines the size of the hashes
+        "m": [int(x * FOCUS_OD_DOMAIN_SIZE) for x in [0.005, 0.01, 0.1, 0.5]], # defines the size of the hashes
         "epsilon": [0.5, 1, 5, 10],
         "sensitivity": sensitivities
     }
@@ -54,7 +54,7 @@ rule all:
         "output/figs/k_anonymity_example.png",
         "output/figs/spatiotemporal_r2_by_date_type.png",
         expand("output/sensitivity/collective_model_sensitivity/collective_error_comparison_date_{date}_d_{division}.png", date=FOCUS_DATE, division=FOCUS_DIVISION),
-        "output/figs/k_anonymity_construction.png",
+        "output/figs/construction_error.png",
         "output/figs/construction_epsilon_mape.png",
         "output/figs/spacetime_raster.png"
 
@@ -268,8 +268,6 @@ rule compare_privacy_construction:
         f"output/depr/departure-diffusion_exp/simulated_depr_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv"
     output:
         f"output/analytics/k_anonymous/departure-diffusion_exp/k_anonymous_analytics_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv",
-        f"output/analytics/gdp/departure-diffusion_exp/gdp_analytics_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv",
-        f"output/analytics/cms/departure-diffusion_exp/cms_analytics_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv"
     shell:
         """
         python {input} {output}
@@ -277,16 +275,11 @@ rule compare_privacy_construction:
 
 rule plot_privacy_construction:
     input:
-        "src/plot_privacy_construction.py",
-        f"output/analytics/base_analytics/departure-diffusion_exp/base_analytics_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv",
-        f"output/analytics/k_anonymous/departure-diffusion_exp/k_anonymous_analytics_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv",
-        f"output/analytics/gdp/departure-diffusion_exp/gdp_analytics_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv",
-        f"output/analytics/cms/departure-diffusion_exp/cms_analytics_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv"
+        "src/plot_privacy_construction.R",
+        f"output/analytics/sensitivity/privacy_sensitivity_errors_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv",
+        f"output/analytics/k_anonymous/departure-diffusion_exp/k_anonymous_analytics_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv"
     output:
-        'output/figs/k_anonymity_construction.png',
-        'output/figs/gdp_construction.png',
-        'output/figs/naive_ldp_construction.png',
-        'output/figs/cms_construction.png',
+        "output/figs/construction_comparison.png"
     shell:
         """
         python {input} {output}
@@ -342,12 +335,9 @@ rule plot_privacy_error:
         f"output/analytics/sensitivity/privacy_sensitivity_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv",
         "data/geo/2019_us_county_distance_matrix.csv"
     output:
-        "output/figs/construction_epsilon_mape.png",
-        "output/figs/construction_epsilon_ape_threshold.png",
-        "output/figs/construction_epsilon_ape_threshold_full.png",
-        "output/figs/construction_epsilon_freq_ape.png",
-        "output/figs/construction_sensitivity_sensitivity.png",
-        "output/figs/construction_m_k_sensitivity.png"
+        "output/figs/construction_error.png",
+        "output/figs/construction_error_freq.png",
+        "output/figs/cms_parameter_sesitivity.png"
     shell:
         "Rscript {input} {output}"
 
@@ -429,3 +419,6 @@ rule download_output: # Download compressed output directory (execute locally)
     shell:
         f"scp -r {os.getenv('REMOTE_USER')}@{os.getenv('REMOTE_HOST')}:{os.getenv('REMOTE_OUTPUT_DIR')}/output {os.getenv('LOCAL_OUTPUT_DIR')}"
     
+rule download_metadata: # Download compressed output directory (execute locally)
+    shell:
+        f"scp -r {os.getenv('REMOTE_USER')}@{os.getenv('REMOTE_HOST')}:{os.getenv('REMOTE_OUTPUT_DIR')}/.snakemake {os.getenv('LOCAL_OUTPUT_DIR')}"

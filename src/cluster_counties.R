@@ -8,10 +8,10 @@ suppressPackageStartupMessages({
 if (interactive()) {
   .args <- c(
     "data/geo/tl_2019_us_county/tl_2019_us_county.shp",
-    "output/depr/departure-diffusion_exp/simulated_depr_date_2019_01_01_d_2.csv",
+    "output/depr/departure-diffusion_exp/simulated_depr_date_2019_04_08_d_2.csv",
     "output/figs/counties_cluster_dendro.png",
     "output/figs/counties_cluster_map.png",
-    "output/figs/counties_cluster_map.png",
+    "output/figs/counties_cluster_area.png",
     "output/space_time_scale/spatial_cluster_geoids.csv",
     "output/space_time_scale/spatial_cluster_mean_area.csv",
     "output/figs/spatial_cluster_example.png"
@@ -26,7 +26,7 @@ counties <- st_read(.args[1])
 
 depr <- fread(.args[2])
 
-counties <- subset(counties, GEOID %in% unique(depr$geoid))
+counties <- subset(counties, GEOID %in% unique(c(depr$geoid_o, depr$geoid_d)))
 counties <- st_simplify(counties, dTolerance = 100, preserveTopology = T)
 
 counties_cent <- st_centroid(counties)
@@ -34,7 +34,7 @@ counties_cent <- st_centroid(counties)
 distance_matrix <- as.matrix(st_distance(counties_cent))
 
 hc <- hclust(as.dist(distance_matrix), method = "ward.D2")
-ks <- as.integer(seq(from=5, to=length(counties_cent$GEOID)/2, by=10))
+ks <- as.integer(seq(from=15, to=length(counties_cent$GEOID), by=10))
 
 merge_heights <- sort(hc$height, decreasing = TRUE)
 cut_heights <- merge_heights[ks-1]
@@ -45,7 +45,7 @@ p_dendro <- ggdendrogram(dendro_df) +
   geom_hline(yintercept = cut_heights, 
              color = "red", 
              size=0.2) + 
-  scale_y_continuous(trans="log2",
+  scale_y_continuous(trans="log",
                      breaks=cut_heights,
                      labels = ks) + 
   theme(axis.text.x = element_blank(),
@@ -121,7 +121,7 @@ p_area <- ggplot(area_size) +
   facet_wrap(~name, scales="free_y") + 
   scale_x_continuous(breaks=ks) + 
   labs(y="Value",
-       x="Number of clusters") + 
+       x="Number of regions") + 
   theme_classic() + 
   theme(strip.background = element_blank(),
         strip.text = element_text(face="bold"))
