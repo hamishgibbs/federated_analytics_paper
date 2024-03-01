@@ -45,9 +45,9 @@ p_dendro <- ggdendrogram(dendro_df) +
   geom_hline(yintercept = cut_heights, 
              color = "red", 
              size=0.2) + 
-  scale_y_continuous(trans="log",
-                     breaks=cut_heights,
-                     labels = ks) + 
+  scale_y_continuous(trans="log10",
+                     breaks=c(cut_heights[1], cut_heights[length(cut_heights)]),
+                     labels = c(ks[1], ks[length(ks)])) + 
   theme(axis.text.x = element_blank(),
         axis.text.y = element_text(color="red",
                                    angle=0)) + 
@@ -128,8 +128,8 @@ p_area <- ggplot(area_size) +
 
 ggsave(.outputs[3],
        p_area,
-       width=10,
-       height=5, 
+       width=8,
+       height=4, 
        units="in") 
 
 # Output lookup relating GEOID to cluster

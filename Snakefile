@@ -234,9 +234,9 @@ rule base_analytics:
         python {input} {output}
         """
 
-rule spatio_temporal_sensitivity:
+rule plot_collective_model_spatio_temporal_sensitivity:
     input:
-        "src/plot_spatio_temporal_sensitivity.R",
+        "src/plot_collective_model_spatio_temporal_sensitivity.R",
         expand("output/gravity/check/departure-diffusion_exp_date_{date}_d_{division}_check.csv", date=DATES, division=DIVISIONS)
     output:
         "output/figs/spatiotemporal_r2_by_date_type.png",
