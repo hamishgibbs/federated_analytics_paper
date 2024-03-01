@@ -386,7 +386,7 @@ rule plot_privacy_error_space_time:
         expand("output/space_time_scale/analytics/{construction}/{construction}_analytics_s_{sensitivity}_e_{epsilon}_k_{k}_m_{m}_space_{space}_time_{t}.csv", 
             construction=["CMS"],
             sensitivity=[1000],
-            epsilon=[5],
+            epsilon=sensitivity_params["CMS"]["epsilon"],
             k=sensitivity_params["CMS"]["k"][-1],
             m=sensitivity_params["CMS"]["m"][-1],
             space=SPACE_K,
