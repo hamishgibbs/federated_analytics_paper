@@ -143,8 +143,8 @@ res_lmg_boot_ci <- relaimpo::booteval.relimp(res_lmg_boot, bty = "perc",
 res <- relaimpo::calc.relimp(sd_model, type="lmg", rela=T)
 res_lmg <- data.table(param=res_lmg_boot@namen[2:5],
            lmg=res$lmg,
-           lower=as.numeric(res_boot_ci@lmg.lower),
-           upper=as.numeric(res_boot_ci@lmg.upper))
+           lower=as.numeric(res_lmg_boot_ci@lmg.lower),
+           upper=as.numeric(res_lmg_boot_ci@lmg.upper))
 
 res_lmg[, param := factor(param, 
                           levels=rev(c("epsilon", "sensitivity", "m", "k")),
@@ -160,7 +160,7 @@ p_param_r2 <- ggplot(res_lmg) +
                     color=param), width=0.2) + 
   geom_point(aes(y = param, x = lmg, color=param), stat="identity", 
              size=1) + 
-  geom_text(aes(y = param, x = lmg+0.12, 
+  geom_text(aes(y = param, x = upper+0.12, 
                 label=scales::percent(lmg)),
             size=3.5) + 
   geom_vline(xintercept=1, linetype="dashed", size=0.2) + 
@@ -214,7 +214,7 @@ errors_cms_m <- subset(errors_cms, epsilon==10 & sensitivity == 10 & k == 2056)
 
 errors_cms_m[, m := factor(m,
                            levels = sort(unique(errors_cms_m$m)),
-                           labels = paste(c(0.005, 0.1, 0.5, 1, 2), "× N OD pairs"))]
+                           labels = paste(c(0.005, 0.01, 0.1, 0.5), "× N OD pairs"))]
 
 p_param_m <- ggplot(errors_cms_m) + 
   geom_density(aes(x = error, color=as.character(m))) + 
