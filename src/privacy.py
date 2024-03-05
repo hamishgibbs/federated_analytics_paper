@@ -59,30 +59,3 @@ def freq_cms(domain, data, m, k, sensitivity, epsilon):
     domain = domain.drop('od_id')
 
     return domain     
-
-
-def main():
-
-    depr = pl.read_csv(
-        sys.argv[1],
-        columns=['uid', 'time', 'geoid'],
-        dtypes={'geoid': pl.Utf8}
-    )
-
-    depr = depr.sort(["uid", "time"]) \
-       .groupby("uid") \
-       .apply(lambda group: group.with_columns(group["geoid"].shift(-1).alias("geoid_d"))) \
-       .rename({'geoid': 'geoid_o'}) \
-       .filter(pl.col('geoid_d').is_not_null())
-    
-    domain = depr.select([pl.col('geoid_o'), pl.col('geoid_d')]).unique()
-    domain = domain.with_columns(pl.Series("od_id", range(domain.height)))
-
-    depr = depr.with_columns(pl.lit(1).alias('count'))
-
-    k_anonymous = k_anonymous_sum(depr, ['geoid_o', 'geoid_d'], T=10)
-
-    k_anonymous.write_csv(sys.argv[-1])    
-
-if __name__ == '__main__':
-    main()

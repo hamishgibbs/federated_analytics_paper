@@ -6,7 +6,6 @@ suppressPackageStartupMessages({
 if (interactive()) {
   .args <- c(
     "output/analytics/sensitivity/privacy_sensitivity_errors_date_2019_04_08_d_2.csv",
-    "output/analytics/k_anonymous/departure-diffusion_exp/k_anonymous_analytics_date_2019_04_08_d_2.csv",
     "output/figs/construction_comparison.png"
   )
 } else {
@@ -25,8 +24,6 @@ errors[, construction := ifelse(construction == "GDP", "CDP", construction)]
 errors[, count := as.integer(count)]
 errors[, count_private := as.integer(count_private)]
 
-k_anon <- fread(.args[2])
-k_anon[, count := as.integer(count)]
 errors[, count_private := as.integer(count_private)]
 
 # Select representative examples of the CDP and CMS mechanisms
@@ -51,8 +48,8 @@ od_counts[, id := .I]
 # Format k-anonymity data for comparison
 colnames(k_anon) <- c('geoid_o', 'geoid_d', 'count_private')
 
-k_anon_full <- od_counts[, .(geoid_o, geoid_d, count)]
-k_anon <- k_anon_full[k_anon, on=c('geoid_o', 'geoid_d'), count_private := count_private]
+k_anon <- od_counts[, .(geoid_o, geoid_d, count)]
+k_anon[, count_private := ifelse(count >=10, count, NA)]
 k_anon[, construction := 'K-anonymity']
 
 # Combine all three privacy mechanisms
@@ -105,7 +102,7 @@ p <- ggplot(subset(errors_comparison_long, !is.na(value))) +
                      breaks=c(0.1, 1, 10, 100, 1000, 10000)) + 
   scale_color_manual(values = c("Privatised value" = "red", "True value" = "blue")) +
   theme_classic() + 
-  theme(legend.position = c(0.75, 0.22),
+  theme(legend.position = c(0.8, 0.22),
         strip.background = element_rect(size=0),
         strip.text = element_text(face='bold')) + 
   scale_x_continuous(trans="log10", 
@@ -118,5 +115,6 @@ p <- ggplot(subset(errors_comparison_long, !is.na(value))) +
 ggsave(.outputs[1],
        p,
        width=8,
-       height=6, 
+       height=5, 
        units="in")
+ 

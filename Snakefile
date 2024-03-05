@@ -248,17 +248,6 @@ rule plot_collective_model_spatio_temporal_sensitivity:
         Rscript  {input} {output}
         """
 
-rule compare_privacy_construction:
-    input:
-        "src/privacy.py",
-        f"output/depr/departure-diffusion_exp/simulated_depr_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv"
-    output:
-        f"output/analytics/k_anonymous/departure-diffusion_exp/k_anonymous_analytics_date_{FOCUS_DATE}_d_{FOCUS_DIVISION}.csv",
-    shell:
-        """
-        python {input} {output}
-        """
-
 rule plot_privacy_construction:
     input:
         "src/plot_privacy_construction.R",
