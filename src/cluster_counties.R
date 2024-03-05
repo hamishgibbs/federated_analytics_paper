@@ -14,13 +14,14 @@ if (interactive()) {
     "output/figs/counties_cluster_area.png",
     "output/space_time_scale/spatial_cluster_geoids.csv",
     "output/space_time_scale/spatial_cluster_mean_area.csv",
-    "output/figs/spatial_cluster_example.png"
+    "output/figs/spatial_cluster_example.png",
+    "output/figs/spatial_cluster_example.rds"
   )
 } else {
   .args <- commandArgs(trailingOnly = T)
 }
 
-.outputs <- tail(.args, 6)
+.outputs <- tail(.args, 7)
 
 counties <- st_read(.args[1])
 
@@ -119,7 +120,8 @@ p_area <- ggplot(area_size) +
   geom_path(aes(x = k, y = value)) +
   geom_point(aes(x = k, y = value)) + 
   facet_wrap(~name, scales="free_y") + 
-  scale_x_continuous(breaks=ks) + 
+  scale_x_continuous(breaks=ks) +
+  scale_y_continuous(labels = scales::comma) + 
   labs(y="Value",
        x="Number of regions") + 
   theme_classic() + 
@@ -145,13 +147,13 @@ mean_area[, value := NULL]
 
 fwrite(mean_area, .outputs[5])
 
-example_ks <- rev(c(ks[1], ks[as.integer(length(ks)/2)], ks[length(ks)]))
+example_ks <- rev(c(ks[as.integer(length(ks)/2)], ks[length(ks)]))
 
 example_combined_regions <- subset(combined_regions, k %in% example_ks)
 
 example_combined_regions$space_label <- factor(example_combined_regions$k,
                                                levels = example_ks,
-                                               labels = rev(round(mean_area$mean_area[c(mean_area$k %in% example_ks)]/1000, 2)))
+                                               labels = paste0("Mean area = ", rev(round(mean_area$mean_area[c(mean_area$k %in% example_ks)]/1000, 1)), " km2"))
 
 p_spatial_aggregation_example <- ggplot(example_combined_regions) + 
   geom_sf(aes(fill=as.character(cluster)), 
@@ -167,3 +169,5 @@ ggsave(.outputs[6],
        width=8,
        height=10, 
        units="in") 
+
+readr::write_rds(p_spatial_aggregation_example + labs(title="a"), .outputs[7])

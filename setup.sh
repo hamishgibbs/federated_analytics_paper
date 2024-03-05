@@ -21,7 +21,7 @@ conda run --name fed_analytics_paper conda install -y -c conda-forge jags
 conda run --name fed_analytics_paper conda install -y -c conda-forge gdal
 
 # Install R dependencies
-conda run --name fed_analytics_paper conda install -c conda-forge r-data.table r-ggplot2 r-igraph r-devtools r-readr r-cowplot r-sf r-terra r-s2 r-ggdendro r-rnaturalearth r-rnaturalearthdata r-timedate r-ggdendro r-lubridate
+conda run --name fed_analytics_paper conda install -c conda-forge r-data.table r-ggplot2 r-igraph r-devtools r-readr r-cowplot r-sf r-terra r-s2 r-ggdendro r-rnaturalearth r-rnaturalearthdata r-timedate r-ggdendro r-lubridate r-relaimpo
 
 # Install development R packages
 conda run --name fed_analytics_paper Rscript -e "devtools::install_github('COVID-19-Mobility-Data-Network/mobility')"

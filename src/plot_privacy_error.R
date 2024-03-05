@@ -135,8 +135,6 @@ error_cms_sd <- errors_cms[, .(error_sd = sd(error)),
 
 sd_model <- lm(error_sd~epsilon+sensitivity+m+k, data=error_cms_sd)
 
-plot(sd_model)
-
 res_lmg_boot <- relaimpo::boot.relimp(sd_model, type="lmg", rela=T, R=1000)
 res_lmg_boot_ci <- relaimpo::booteval.relimp(res_lmg_boot, bty = "perc", 
                                              level = 0.95)

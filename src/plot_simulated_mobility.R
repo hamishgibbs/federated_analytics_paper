@@ -6,9 +6,9 @@ suppressPackageStartupMessages({
 
 if (interactive()) {
   .args <- c(
-    "data/mobility/clean/daily_county2county_date_2019_01_01_clean.csv",
-    "output/gravity/gravity/pij/departure-diffusion_exp_date_2019_01_01_d_2_pij.csv",
-    "output/analytics/base_analytics/departure-diffusion_exp/base_analytics_date_2019_01_01_d_2.csv",
+    "data/mobility/clean/daily_county2county_date_2019_04_08_clean.csv",
+    "output/gravity/pij/departure-diffusion_exp_date_2019_04_08_d_2_pij.csv",
+    "output/analytics/base_analytics/departure-diffusion_exp/base_analytics_date_2019_04_08_d_2.csv",
     "data/geo/2019_us_county_distance_matrix.csv",
     "output/figs/empirical_network_map.png",
     "output/figs/depr_network_map.png"
