@@ -89,8 +89,8 @@ ggsave(.outputs[1],
        units="in")  
 
 p_r_time <- ggplot(subset(r2_check, date_type %in% c("Weekday", "Weekend"))) + 
-  geom_path(aes(x = date, y = value, color=division), size=0.2) + 
-  geom_point(aes(x = date, y = value, color=division), size=0.2) + 
+  geom_path(aes(x = date, y = value, color=division), size=0.4) + 
+  geom_point(aes(x = date, y = value, color=division), size=0.4) + 
   facet_wrap(~month, scales="free_x") +
   theme_classic() + 
   labs(y="Correlation Coefficient",
@@ -99,8 +99,8 @@ p_r_time <- ggplot(subset(r2_check, date_type %in% c("Weekday", "Weekend"))) +
 
 ggsave(.outputs[2],
        p_r_time,
-       width=10,
-       height=8, 
+       width=8,
+       height=6, 
        units="in")  
 
 

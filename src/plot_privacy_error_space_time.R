@@ -205,4 +205,5 @@ ggplot(res) +
             alpha=0.2) + 
   scale_y_continuous(trans="log10")
 
+# x increase in spatial resolution leads to x increase in % OD pairs with high accuracy
 

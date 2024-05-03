@@ -388,6 +388,16 @@ rule plot_privacy_error_space_time:
     shell:
         "Rscript {input} {output}"
 
+rule plot_privacy_network_maps:
+    input:
+        "src/plot_privacy_network_maps.R",
+        "output/analytics/sensitivity/privacy_sensitivity_errors_date_2019_04_08_d_2.csv",
+        "data/geo/2019_us_county_distance_matrix.csv"
+    output:
+        "output/figs/privacy_acceptable_error_map.png"
+    shell:
+        "Rscript {input} {output}"
+
 # Utility rule to collect outputs from a remote server
 
 rule download_output: # Download compressed output directory (execute locally)

@@ -8,13 +8,15 @@ if (interactive()) {
     "data/mobility/clean/daily_county2county_date_2019_04_08_clean.csv",
     "output/gravity/check/gravity_basic_date_2019_04_08_d_2_check.csv",
     "output/gravity/check/gravity_power_date_2019_04_08_d_2_check.csv",
+    "output/gravity/check/departure-diffusion_exp_date_2019_04_08_d_2_check.csv",
     "output/gravity/pij/gravity_basic_date_2019_04_08_d_2_pij.csv",
     "output/gravity/pij/gravity_power_date_2019_04_08_d_2_pij.csv",
+    "output/gravity/pij/departure-diffusion_exp_date_2019_04_08_d_2_pij.csv",
     "output/sensitivity/collective_model_sensitivity/collective_error_comparison_date_2019_04_08_d_2.png",
     "output/sensitivity/collective_model_sensitivity/collective_model_metrics_date_2019_04_08_d_2.png",
     "output/sensitivity/collective_model_sensitivity/collective_model_metrics_date_2019_04_08_d_2.csv"
   )
-  N_COLLECTIVE_MODELS <- 2
+  N_COLLECTIVE_MODELS <- 3
 } else {
   .args <- commandArgs(trailingOnly = T)
   N_COLLECTIVE_MODELS <- 8
@@ -42,9 +44,9 @@ pij <- do.call(rbind,
                lapply(pij_fn, read_model, stub="_date_2019_04_08_d_2_pij.csv",
                       colClasses=c("geoid_o"="character", "geoid_d"="character")))
 
-empirical[, obs := pop_flows / sum(pop_flows)]
+pij[empirical, on=c("geoid_o", "geoid_d"), obs := as.numeric(pop_flows)]
 
-pij[empirical, on=c("geoid_o", "geoid_d"), obs := obs]
+pij[, obs := obs / sum(obs), by = .(model)]
 
 pij <- pij[order(obs)]
 pij[, id := rev(.I)]
@@ -72,8 +74,8 @@ p <- ggplot(pij) +
 
 ggsave(.outputs[1],
        p,
-       width=8,
-       height=10, 
+       width=9,
+       height=11, 
        units="in")  
 
 metrics <- metrics[order(metric, model)]
@@ -87,7 +89,7 @@ p <- ggplot(metrics) +
   facet_wrap(~metric, scales='free_y') + 
   theme_minimal() + 
   theme(legend.position = "none",
-        plot.background = element_rect(fill="white"),
+        plot.background = element_rect(fill="white", size=0),
         axis.text.x = element_text(angle = 45, hjust = 1),
         strip.text = element_text(face="bold"),
         text = element_text(size=15)) + 
