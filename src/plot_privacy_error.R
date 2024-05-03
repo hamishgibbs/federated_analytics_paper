@@ -111,7 +111,7 @@ p_error_freq <- ggplot(errors_gdp_cms_comparison_high_freq) +
   theme(axis.text.x = element_text(angle = -45, hjust = 0),
         strip.background = element_rect(size=0),
         legend.position = 'none') +
-  labs(y = "Absolute percentage error", 
+  labs(y = "Error %", 
        x = "Origin-destination pair frequency", 
        title='b')
 
