@@ -1,6 +1,6 @@
 # federated_analytics_paper
 
-Code supporting the publication __. 
+Code supporting the publication *Impact of federated data with local differential privacy for human mobility modeling* by Gibbs, et. al. 
 
 # Workflow diagram
 
