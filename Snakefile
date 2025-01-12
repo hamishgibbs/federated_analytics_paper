@@ -394,7 +394,8 @@ rule plot_privacy_network_maps:
         "output/analytics/sensitivity/privacy_sensitivity_errors_date_2019_04_08_d_2.csv",
         "data/geo/2019_us_county_distance_matrix.csv"
     output:
-        "output/figs/privacy_acceptable_error_map.png"
+        "output/figs/privacy_acceptable_error_map.png",
+        "output/figs/privacy_acceptable_error_map_wide.png"
     shell:
         "Rscript {input} {output}"
 

@@ -45,9 +45,6 @@ od_counts <- unique(errors[, .(geoid_o, geoid_d, count)])
 od_counts <- od_counts[order(-count)]
 od_counts[, id := .I]
 
-# Format k-anonymity data for comparison
-colnames(k_anon) <- c('geoid_o', 'geoid_d', 'count_private')
-
 k_anon <- od_counts[, .(geoid_o, geoid_d, count)]
 k_anon[, count_private := ifelse(count >=10, count, NA)]
 k_anon[, construction := 'K-anonymity']

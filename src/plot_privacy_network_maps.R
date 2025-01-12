@@ -15,7 +15,7 @@ if (interactive()) {
   .args <- commandArgs(trailingOnly = T)
 }
 
-.outputs <- tail(.args, 1)
+.outputs <- tail(.args, 2)
 errors <- fread(.args[1],
                 colClasses=c("geoid_o"="character", "geoid_d"="character"))
 errors[, construction := ifelse(construction == "GDP", "CDP", construction)]
@@ -133,6 +133,15 @@ ggsave(.outputs[1],
        p,
        width=8,
        height=7, 
+       units="in")
+
+p <- cowplot::plot_grid(p_true, p_gdp, p_cms,
+                        nrow=1)
+
+ggsave(.outputs[2],
+       p,
+       width=10,
+       height=4, 
        units="in")
 
 
